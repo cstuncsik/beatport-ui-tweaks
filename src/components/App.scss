@@ -1,0 +1,47 @@
+@import '../assets/styles/variables';
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: $grey;
+  color: $green;
+  font-size: 1rem;
+  font-family: CoreSans,Arial,sans-serif;
+}
+
+.wrapper {
+  padding: 1rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  ::before {
+    display: inline-block;
+    content: '';
+    margin: 0 1rem 0 0;
+    width: 64px;
+    height: 64px;
+    background: transparent url('../assets/images/icon.png') no-repeat center center;
+    background-size: contain;
+  }
+}
+
+h1, h2 {
+  font-size: 1.5rem;
+  font-weight: normal;
+  font-family: Oswald,Arial,sans-serif;
+}
+
+h1 {
+  white-space: nowrap;
+}
+
+h2 {
+  font-size: 1.25rem;
+}

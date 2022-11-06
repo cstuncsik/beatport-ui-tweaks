@@ -1,0 +1,27 @@
+{
+  "name": "Beatport UI Tweaks",
+  "description": "Adding some useful features to Beatport.com site",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "background": {
+    "service_worker": "assets/scripts/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.beatport.com/*"],
+      "css": ["assets/styles/content.scss"],
+      "js": ["assets/scripts/content.ts"]
+    }
+  ],
+  "icons": {
+    "16": "assets/images/icon.png?width=16",
+    "32": "assets/images/icon.png?width=32",
+    "48": "assets/images/icon.png?width=48",
+    "128": "assets/images/icon.png"
+  }
+}

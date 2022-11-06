@@ -1,0 +1,49 @@
+@import '../assets/styles/variables';
+
+.option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    input {
+      border-color: $green;
+    }
+  }
+
+  input {
+    width: 20px;
+    height: 20px;
+    background: #000;
+    border: 1px solid transparentize($green, 0.5);
+    appearance: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+
+    &:checked + span::before {
+      transform: scale(1);
+    }
+  }
+
+  span {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.5rem;
+
+    &::before {
+      display: block;
+      position: absolute;
+      content: '';
+      width: 14px;
+      height: 14px;
+      background: $green;
+      top: 2px;
+      left: -25px;
+      z-index: 1;
+      transform: scale(0);
+      transition: transform 0.15s ease-out;
+    }
+  }
+}
