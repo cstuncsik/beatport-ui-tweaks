@@ -13,3 +13,12 @@ export const getOffset = (el: HTMLElement | null, parent: HTMLElement): Record<s
   }
   return ret
 }
+
+export const toggleBodyFeatureClassNames = (id: string, enabled: boolean) => {
+  const body = document.body
+  if (enabled) {
+    body.classList.add(id)
+  } else {
+    body.classList.remove(id)
+  }
+}

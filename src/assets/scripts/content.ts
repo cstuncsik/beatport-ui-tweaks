@@ -1,16 +1,12 @@
-import { getOffset } from './utils/dom'
+import { getOffset, toggleBodyFeatureClassNames } from './utils/dom'
 import { Feature } from '../../store'
+import { getLastPlayedReleases, setLastPlayedGenres } from './utils/storage'
+import { getGenreOrArtistFromUrl } from './utils/url'
 
 const body = document.querySelector<HTMLElement>('body')!
 const rowClass = 'bucket-item'
 const rowActiveClass = `${rowClass}__active`
 const releasePlayBtnClass = 'playable-play'
-const lastPalayedStorageKey = `beatport-last-played`
-
-const getLastPlayedReleases = () => JSON.parse(localStorage.getItem(lastPalayedStorageKey) || '')
-const setLastPlayedGenres = (genres: Record<string, string>) =>
-  localStorage.setItem(lastPalayedStorageKey, JSON.stringify(genres))
-const getGenreOrArtistFromUrl = () => location.pathname.replace(/\/(genre|artist)\/(.*?)\/.*?$/, '$2')
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
 const mutationObserver = new MutationObserver(mutationList => {
@@ -62,26 +58,17 @@ body.addEventListener('click', e => {
   }
 })
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(request => {
   const {
     feature: { id, enabled }
   } = request
-  if (enabled) {
-    body.classList.add(id)
-  } else {
-    body.classList.remove(id)
-  }
+  toggleBodyFeatureClassNames(id, enabled)
 })
 
 chrome.runtime.sendMessage({ action: 'get-beatport-ui-features' }, response => {
-  console.log(response)
   const { features } = response
   features?.forEach((feature: Feature) => {
     const { id, enabled } = feature
-    if (enabled) {
-      body.classList.add(id)
-    } else {
-      body.classList.remove(id)
-    }
+    toggleBodyFeatureClassNames(id, enabled)
   })
 })
