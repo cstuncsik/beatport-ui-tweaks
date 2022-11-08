@@ -1,12 +1,12 @@
 {
   "name": "Beatport UI Tweaks",
-  "description": "Adding some useful features to Beatport.com site",
+  "description": "A web extension that adds some useful feature to beatport.com site",
   "version": "1.0.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "storage"],
   "background": {
     "service_worker": "assets/scripts/background.ts",
     "type": "module"
