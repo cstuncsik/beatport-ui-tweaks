@@ -1,6 +1,6 @@
+import { useEffect } from 'react'
 import './Option.scss'
 import { Feature } from '../store'
-import { useEffect } from 'react'
 
 type OptionProps = {
   feature: Feature

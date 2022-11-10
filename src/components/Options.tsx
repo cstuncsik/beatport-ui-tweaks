@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import './Options.scss'
 import { Option } from './Option'
 import { Feature } from '../store'
-import { useEffect } from 'react'
+import { featuresStorageKey } from '../assets/scripts/utils/chrome'
 
 type OptionsProps = {
   features?: Feature[]
@@ -10,7 +11,7 @@ type OptionsProps = {
 
 export const Options = ({ features, toggleFeature }: OptionsProps) => {
   useEffect(() => {
-    chrome.storage.sync.set({ features })
+    chrome.storage.sync.set({ [featuresStorageKey]: features })
   }, [features])
   return (
     <section>
