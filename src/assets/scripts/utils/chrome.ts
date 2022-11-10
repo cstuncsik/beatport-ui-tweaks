@@ -21,7 +21,8 @@ export const getItem = (key: string): Promise<never> =>
 
 export const getFeatures = async (): Promise<Feature[]> => {
   try {
-    return getItem(featuresStorageKey)
+    const features = await getItem(featuresStorageKey)
+    return features
   } catch (e) {
     console.warn(e)
     return defaultFeatures
