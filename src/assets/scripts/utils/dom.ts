@@ -14,6 +14,38 @@ export const getOffset = (el: HTMLElement | null, parent: HTMLElement): Record<s
   return ret
 }
 
+export function isElementVisible(el?: HTMLElement | null): boolean {
+  if (!el) {
+    return false
+  }
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)
+}
+
+export const waitUntilElementIsVisible = (
+  el?: HTMLElement | null,
+  timeout = 2000
+): Promise<{ width: number; height: number } | null> => {
+  let rafID: number
+  const started: number = Date.now()
+  return new Promise(resolve => {
+    function checker() {
+      const elapsed = Date.now() - started
+      if (!isElementVisible(el)) {
+        if (elapsed > timeout) {
+          window.cancelAnimationFrame(rafID)
+          resolve(null)
+        } else {
+          rafID = window.requestAnimationFrame(checker)
+        }
+      } else {
+        window.cancelAnimationFrame(rafID)
+        resolve({ width: el?.offsetWidth ?? 0, height: el?.offsetHeight ?? 0 })
+      }
+    }
+    checker()
+  })
+}
+
 export const toggleBodyFeatureClassNames = (id: string, enabled: boolean) => {
   const body = document.body
   if (enabled) {

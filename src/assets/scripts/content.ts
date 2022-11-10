@@ -21,7 +21,7 @@ const mutationObserver = new MutationObserver(mutationList => {
         const lastPlayedBtn = document.querySelector<HTMLElement>(
           `.${releasePlayBtnClass}[data-id="${lastPlayedReleases[genreOrArtist]}"]`
         )
-
+        await waitUntilElementIsVisible(lastPlayedBtn)
         if (lastPlayedBtn) {
           const { top } = getOffset(lastPlayedBtn, body)
           lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass)
