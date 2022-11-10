@@ -1,5 +1,4 @@
-export const lastPalayedStorageKey = `beatport-last-played`
+import { LastPlayed, lastPlayedStorageKey } from './chrome'
 
-export const getLastPlayedReleases = () => JSON.parse(localStorage.getItem(lastPalayedStorageKey) || '')
-export const setLastPlayedGenres = (genres: Record<string, string>) =>
-  localStorage.setItem(lastPalayedStorageKey, JSON.stringify(genres))
+export const getLastPlayedReleasesFromLocalStorage = (): LastPlayed =>
+  JSON.parse(localStorage.getItem(lastPlayedStorageKey) || '{}')

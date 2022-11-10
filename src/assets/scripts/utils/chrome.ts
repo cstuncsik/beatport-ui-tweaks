@@ -1,4 +1,10 @@
 import { defaultFeatures, Feature } from '../../../store'
+import { getLastPlayedReleasesFromLocalStorage } from './storage'
+
+export type LastPlayed = Record<string, number>
+
+export const lastPlayedStorageKey = 'beatport-last-played'
+export const featuresStorageKey = 'beatport-ui-features'
 
 export const getItem = (key: string): Promise<never> =>
   new Promise((resolve, reject) => {
@@ -15,10 +21,19 @@ export const getItem = (key: string): Promise<never> =>
 
 export const getFeatures = async (): Promise<Feature[]> => {
   try {
-    const features: Feature[] = await getItem('features')
-    return Array.isArray(features) && features.length ? features : defaultFeatures
+    return getItem(featuresStorageKey)
   } catch (e) {
     console.warn(e)
     return defaultFeatures
+  }
+}
+
+export const getLastPlayedReleases = async (): Promise<LastPlayed> => {
+  try {
+    const lastPlayed = await getItem(lastPlayedStorageKey)
+    return lastPlayed
+  } catch (e) {
+    console.warn(e)
+    return getLastPlayedReleasesFromLocalStorage()
   }
 }
