@@ -39,9 +39,9 @@ const useFeatures = () => {
   }
 }
 
-const FeatureContext = createContext<ReturnType<typeof useFeatures> | null>(null)
+const FeatureContext = createContext<ReturnType<typeof useFeatures>>({ toggleFeature, state: { loading: true } })
 
-export const useFeatureContext = () => useContext(FeatureContext)!
+export const useFeatureContext = () => useContext(FeatureContext)
 
 export const FeatureProvider = ({ children }: { children: ReactNode }) => (
   <FeatureContext.Provider value={useFeatures()}>{children}</FeatureContext.Provider>
