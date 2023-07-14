@@ -4,9 +4,8 @@ import { getGenreOrArtistFromUrl } from './utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
 
 const body = document.querySelector<HTMLElement>('body')!
-const rowClass = 'bucket-item'
+const rowClass = 'row'
 const rowActiveClass = `${rowClass}__active`
-const releasePlayBtnClass = 'playable-play'
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
 const mutationObserver = new MutationObserver(mutationList => {
@@ -17,14 +16,11 @@ const mutationObserver = new MutationObserver(mutationList => {
       timeoutId = setTimeout(async () => {
         const genreOrArtist = getGenreOrArtistFromUrl()
         const lastPlayedReleases = await getLastPlayedReleases()
-        console.log('lastPlayedReleases', lastPlayedReleases)
-        const lastPlayedBtn = document.querySelector<HTMLElement>(
-          `.${releasePlayBtnClass}[data-id="${lastPlayedReleases[genreOrArtist]}"]`
-        )
+        const lastPlayedBtn = document.querySelector<HTMLElement>(`a[href$="/${lastPlayedReleases[genreOrArtist]}"]`)!
         await waitUntilElementIsVisible(lastPlayedBtn)
         if (lastPlayedBtn) {
           const { top } = getOffset(lastPlayedBtn, body)
-          lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass)
+          lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass, 'current')
           if (top) {
             window.scrollTo({
               top: top - window.innerHeight / 2,
@@ -43,21 +39,21 @@ mutationObserver.observe(body, { childList: true })
 
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
-  if (target.classList.contains(releasePlayBtnClass)) {
-    const row = target.closest(`.${rowClass}`)
-    if (row && row.contains(target)) {
-      const genreOrArtist = getGenreOrArtistFromUrl()
-      const lastPlayedReleases = await getLastPlayedReleases()
+  const row = target.closest(`.${rowClass}`)
+  const button = target.closest('button')
+  if (row?.contains(target) && button?.querySelector('svg[title="Play"]')) {
+    const genreOrArtist = getGenreOrArtistFromUrl()
+    const lastPlayedReleases = await getLastPlayedReleases()
+    const releaseId = row.querySelector<HTMLLinkElement>('a')?.href.split('/').pop()
 
-      document.querySelectorAll(`.${rowClass}`).forEach(el => {
-        el.classList.remove(rowActiveClass)
+    document.querySelectorAll(`.${rowClass}`).forEach(el => {
+      el.classList.remove(rowActiveClass)
+    })
+    row.classList.add(rowActiveClass)
+    if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
+      await chrome.storage.sync.set({
+        [lastPlayedStorageKey]: { ...lastPlayedReleases, [genreOrArtist]: releaseId }
       })
-      row.classList.add(rowActiveClass)
-      if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
-        chrome.storage.sync.set({
-          [lastPlayedStorageKey]: { ...lastPlayedReleases, [genreOrArtist]: target.dataset.id }
-        })
-      }
     }
   }
 })

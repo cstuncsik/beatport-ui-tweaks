@@ -1,6 +1,6 @@
 {
   "name": "beatport-ui-tweaks",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A web extension that adds some useful feature to beatport.com site",
   "scripts": {
     "build": "parcel build src/manifest.json --config @parcel/config-webextension",
@@ -17,21 +17,21 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@parcel/config-webextension": "^2.7.0",
-    "@parcel/core": "^2.7.0",
-    "@parcel/transformer-sass": "^2.7.0",
-    "@types/chrome": "^0.0.200",
-    "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.8",
-    "@typescript-eslint/eslint-plugin": "^5.42.0",
-    "@typescript-eslint/parser": "^5.42.0",
-    "eslint": "^8.26.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "parcel": "^2.7.0",
-    "prettier": "^2.7.1",
-    "sharp": "^0.29.1",
-    "typescript": "^4.8.4"
+    "@parcel/config-webextension": "^2.9.3",
+    "@parcel/core": "^2.9.3",
+    "@parcel/transformer-sass": "^2.9.3",
+    "@types/chrome": "^0.0.240",
+    "@types/react": "^18.2.14",
+    "@types/react-dom": "^18.2.6",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "parcel": "^2.9.3",
+    "prettier": "^3.0.0",
+    "sharp": "^0.31.1",
+    "typescript": "^5.1.6"
   },
   "alias": {
     "process": {
