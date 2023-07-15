@@ -5,7 +5,9 @@ import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
 
 const body = document.querySelector<HTMLElement>('body')!
 const rowClass = 'row'
-const rowActiveClass = `${rowClass}__active`
+const rowActiveClass = 'bp-ui-tweak-last-played__active'
+const rowActiveClassOriginal = 'current'
+let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
 const mutationObserver = new MutationObserver(mutationList => {
@@ -16,26 +18,28 @@ const mutationObserver = new MutationObserver(mutationList => {
       timeoutId = setTimeout(async () => {
         const genreOrArtist = getGenreOrArtistFromUrl()
         const lastPlayedReleases = await getLastPlayedReleases()
-        const lastPlayedBtn = document.querySelector<HTMLElement>(`a[href$="/${lastPlayedReleases[genreOrArtist]}"]`)!
-        await waitUntilElementIsVisible(lastPlayedBtn)
+        const { element: lastPlayedBtn } = await waitUntilElementIsVisible(
+          `a[href$="/${lastPlayedReleases[genreOrArtist]}"]`
+        )
         if (lastPlayedBtn) {
           const { top } = getOffset(lastPlayedBtn, body)
-          lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass, 'current')
-          if (top) {
+          lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
+          if (top && !scrolledToLastPlayed) {
             window.scrollTo({
               top: top - window.innerHeight / 2,
               behavior: 'smooth'
             })
+            scrolledToLastPlayed = true
           }
         }
-      }, 250)
+      }, 100)
     }
   }
 })
 
 body.classList.add('bp-ui-tweaks-extension')
 
-mutationObserver.observe(body, { childList: true })
+mutationObserver.observe(body, { childList: true, subtree: true })
 
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
@@ -51,6 +55,7 @@ body.addEventListener('click', async e => {
     })
     row.classList.add(rowActiveClass)
     if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
+      scrolledToLastPlayed = true
       await chrome.storage.sync.set({
         [lastPlayedStorageKey]: { ...lastPlayedReleases, [genreOrArtist]: releaseId }
       })

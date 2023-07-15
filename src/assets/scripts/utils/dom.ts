@@ -22,24 +22,25 @@ export function isElementVisible(el?: HTMLElement | null): boolean {
 }
 
 export const waitUntilElementIsVisible = (
-  el?: HTMLElement | null,
+  selector: string,
   timeout = 2000
-): Promise<{ width: number; height: number } | null> => {
+): Promise<{ element: HTMLElement | null; width: number; height: number }> => {
   let rafID: number
   const started: number = Date.now()
   return new Promise(resolve => {
     function checker() {
       const elapsed = Date.now() - started
+      const el = document.querySelector<HTMLElement>(selector)
       if (!isElementVisible(el)) {
         if (elapsed > timeout) {
           window.cancelAnimationFrame(rafID)
-          resolve(null)
+          resolve({ element: null, width: 0, height: 0 })
         } else {
           rafID = window.requestAnimationFrame(checker)
         }
       } else {
         window.cancelAnimationFrame(rafID)
-        resolve({ width: el?.offsetWidth ?? 0, height: el?.offsetHeight ?? 0 })
+        resolve({ element: el, width: el?.offsetWidth ?? 0, height: el?.offsetHeight ?? 0 })
       }
     }
     checker()

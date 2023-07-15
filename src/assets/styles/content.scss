@@ -1,9 +1,9 @@
 @import './variables';
 
 .bp-ui-tweaks-extension {
-  &.bp-ui-tweak-highlight-list-element {
+  &.bp-ui-tweak-highlight-played-item {
     .row.current,
-    .row.row__active {
+    .bp-ui-tweak-last-played__active {
       border: 1px solid $green;
     }
   }
