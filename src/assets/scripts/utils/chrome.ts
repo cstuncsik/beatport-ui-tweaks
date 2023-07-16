@@ -1,7 +1,7 @@
 import { defaultFeatures, Feature } from '../../../store'
 import { getLastPlayedReleasesFromLocalStorage } from './storage'
 
-export type LastPlayed = Record<string, string>
+export type LastPlayed = Record<string, Record<string, string>>
 
 export const lastPlayedStorageKey = 'beatport-last-played'
 export const featuresStorageKey = 'beatport-ui-features'

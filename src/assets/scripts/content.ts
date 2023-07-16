@@ -1,12 +1,13 @@
 import { getOffset, toggleBodyFeatureClassNames, waitUntilElementIsVisible } from './utils/dom'
 import { Feature } from '../../store'
-import { getGenreOrArtistFromUrl } from './utils/url'
+import { getGenreOrArtistAndTypeFromUrl } from './utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
 
 const body = document.querySelector<HTMLElement>('body')!
 const rowClass = 'row'
 const rowActiveClass = 'bp-ui-tweak-last-played__active'
 const rowActiveClassOriginal = 'current'
+const playedItemBaseSelector = '.cell.title a'
 let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
@@ -16,14 +17,15 @@ const mutationObserver = new MutationObserver(mutationList => {
       clearTimeout(timeoutId)
 
       timeoutId = setTimeout(async () => {
-        const genreOrArtist = getGenreOrArtistFromUrl()
+        const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
         const lastPlayedReleases = await getLastPlayedReleases()
-        const { element: lastPlayedBtn } = await waitUntilElementIsVisible(
-          `a[href$="/${lastPlayedReleases[genreOrArtist]}"]`
+        console.log(lastPlayedReleases)
+        const { element: lastPlayed } = await waitUntilElementIsVisible(
+          `${playedItemBaseSelector}[href$="/${lastPlayedReleases[genreOrArtist]?.[type]}"]`
         )
-        if (lastPlayedBtn) {
-          const { top } = getOffset(lastPlayedBtn, body)
-          lastPlayedBtn.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
+        if (lastPlayed) {
+          const { top } = getOffset(lastPlayed, body)
+          lastPlayed.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
           if (top && !scrolledToLastPlayed) {
             window.scrollTo({
               top: top - window.innerHeight / 2,
@@ -46,9 +48,10 @@ body.addEventListener('click', async e => {
   const row = target.closest(`.${rowClass}`)
   const button = target.closest('button')
   if (row?.contains(target) && button?.querySelector('svg[title="Play"]')) {
-    const genreOrArtist = getGenreOrArtistFromUrl()
+    const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
-    const releaseId = row.querySelector<HTMLLinkElement>('a')?.href.split('/').pop()
+    const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
+    console.log(lastPlayedReleases, genreOrArtist, type, releaseId)
 
     document.querySelectorAll(`.${rowClass}`).forEach(el => {
       el.classList.remove(rowActiveClass)
@@ -57,7 +60,13 @@ body.addEventListener('click', async e => {
     if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
       scrolledToLastPlayed = true
       await chrome.storage.sync.set({
-        [lastPlayedStorageKey]: { ...lastPlayedReleases, [genreOrArtist]: releaseId }
+        [lastPlayedStorageKey]: {
+          ...lastPlayedReleases,
+          [genreOrArtist]: {
+            ...lastPlayedReleases[genreOrArtist],
+            [type]: releaseId
+          }
+        }
       })
     }
   }

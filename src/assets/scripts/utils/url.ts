@@ -1,1 +1,7 @@
-export const getGenreOrArtistFromUrl = () => location.pathname.replace(/\/(genre|artist)\/(.*?)\/.*?$/, '$2')
+export const getGenreOrArtistAndTypeFromUrl = (): Record<string, string> => {
+  const [, , genreOrArtist, , type] = location.pathname.split('/')
+  return {
+    genreOrArtist,
+    type
+  }
+}
