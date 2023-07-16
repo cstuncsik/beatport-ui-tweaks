@@ -19,7 +19,6 @@ const mutationObserver = new MutationObserver(mutationList => {
       timeoutId = setTimeout(async () => {
         const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
         const lastPlayedReleases = await getLastPlayedReleases()
-        console.log(lastPlayedReleases)
         const { element: lastPlayed } = await waitUntilElementIsVisible(
           `${playedItemBaseSelector}[href$="/${lastPlayedReleases[genreOrArtist]?.[type]}"]`
         )
@@ -51,7 +50,6 @@ body.addEventListener('click', async e => {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
     const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
-    console.log(lastPlayedReleases, genreOrArtist, type, releaseId)
 
     document.querySelectorAll(`.${rowClass}`).forEach(el => {
       el.classList.remove(rowActiveClass)
