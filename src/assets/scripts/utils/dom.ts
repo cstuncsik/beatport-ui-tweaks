@@ -55,3 +55,34 @@ export const toggleBodyFeatureClassNames = (id: string, enabled: boolean) => {
     body.classList.remove(id)
   }
 }
+
+export const findSiblingElementsByClasses = (
+  currentElement: Element,
+  classNames: string[]
+): {
+  prevElement: Element | null
+  nextElement: Element | null
+} => {
+  const siblings = Array.from(currentElement.parentNode?.children ?? [])
+  const currentIndex = siblings.indexOf(currentElement)
+  let prevElement = null
+  let nextElement = null
+
+  for (let i = currentIndex - 1; i >= 0; i--) {
+    const element = siblings[i]
+    if (classNames.every(className => element.classList.contains(className))) {
+      prevElement = element
+      break
+    }
+  }
+
+  for (let i = currentIndex + 1; i < siblings.length; i++) {
+    const element = siblings[i]
+    if (classNames.every(className => element.classList.contains(className))) {
+      nextElement = element
+      break
+    }
+  }
+
+  return { prevElement: prevElement, nextElement: nextElement }
+}

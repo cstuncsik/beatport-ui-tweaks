@@ -4,6 +4,7 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 ## Features
 - Toggle list row highlighting (on hover and last played item)
 - Toggle saving last played item in local storage and highlighting it on page load and scrolling to it
+- Play next or previous items with keyboard shortcuts (a -> previous, z -> next)
 
 ## Screenshots
 ### Extension

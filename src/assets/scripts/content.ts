@@ -1,4 +1,9 @@
-import { getOffset, toggleBodyFeatureClassNames, waitUntilElementIsVisible } from './utils/dom'
+import {
+  findSiblingElementsByClasses,
+  getOffset,
+  toggleBodyFeatureClassNames,
+  waitUntilElementIsVisible
+} from './utils/dom'
 import { Feature } from '../../store'
 import { getGenreOrArtistAndTypeFromUrl } from './utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
@@ -66,6 +71,23 @@ body.addEventListener('click', async e => {
           }
         }
       })
+    }
+  }
+})
+
+document.addEventListener('keyup', e => {
+  const { key } = e
+  if (body.classList.contains('bp-ui-tweak-next-prev-play-keyboard')) {
+    const currentRow = document.querySelector(`.${rowClass}.${rowActiveClassOriginal}`)
+    const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow!, [rowClass])
+    if (key === 'z') {
+      const nextPlayButton = nextElement?.querySelector<HTMLButtonElement>('button:has(svg[title="Play"])')
+      nextPlayButton?.click()
+    }
+
+    if (key === 'a') {
+      const prevPlayButton = prevElement?.querySelector<HTMLButtonElement>('button:has(svg[title="Play"])')
+      prevPlayButton?.click()
     }
   }
 })

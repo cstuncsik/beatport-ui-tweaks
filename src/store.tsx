@@ -9,7 +9,12 @@ export type Feature = {
 
 export const defaultFeatures: Feature[] = [
   { id: 'bp-ui-tweak-remember-last-played', label: 'Remember last played', enabled: true },
-  { id: 'bp-ui-tweak-highlight-played-item', label: 'Highlight played item', enabled: true }
+  { id: 'bp-ui-tweak-highlight-played-item', label: 'Highlight played item', enabled: true },
+  {
+    id: 'bp-ui-tweak-next-prev-play-keyboard',
+    label: 'Play items with keyboard (a -> previous, z -> next)',
+    enabled: true
+  }
 ]
 
 const toggleFeature = (id: string, features?: Feature[]): Feature[] | undefined =>
