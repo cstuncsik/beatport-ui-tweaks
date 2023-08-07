@@ -57,16 +57,21 @@ export const toggleBodyFeatureClassNames = (id: string, enabled: boolean) => {
 }
 
 export const findSiblingElementsByClasses = (
-  currentElement: Element,
+  currentElement: Element | null,
   classNames: string[]
 ): {
   prevElement: Element | null
   nextElement: Element | null
 } => {
-  const siblings = Array.from(currentElement.parentNode?.children ?? [])
-  const currentIndex = siblings.indexOf(currentElement)
   let prevElement = null
   let nextElement = null
+
+  if (!currentElement) {
+    return { prevElement, nextElement }
+  }
+
+  const siblings = Array.from(currentElement.parentNode?.children ?? [])
+  const currentIndex = siblings.indexOf(currentElement)
 
   for (let i = currentIndex - 1; i >= 0; i--) {
     const element = siblings[i]
@@ -84,5 +89,5 @@ export const findSiblingElementsByClasses = (
     }
   }
 
-  return { prevElement: prevElement, nextElement: nextElement }
+  return { prevElement, nextElement }
 }

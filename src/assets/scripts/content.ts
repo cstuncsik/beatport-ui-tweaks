@@ -13,6 +13,7 @@ const rowClass = 'row'
 const rowActiveClass = 'bp-ui-tweak-last-played__active'
 const rowActiveClassOriginal = 'current'
 const playedItemBaseSelector = '.cell.title a'
+const buttonSelector = 'button:has(svg[title="Play"])'
 let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
@@ -50,8 +51,7 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
   const row = target.closest(`.${rowClass}`)
-  const button = target.closest('button')
-  if (row?.contains(target) && button?.querySelector('svg[title="Play"]')) {
+  if (row?.contains(target) && target.querySelector(buttonSelector)) {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
     const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
@@ -79,15 +79,14 @@ document.addEventListener('keyup', e => {
   const { key } = e
   if (body.classList.contains('bp-ui-tweak-next-prev-play-keyboard')) {
     const currentRow = document.querySelector(`.${rowClass}.${rowActiveClassOriginal}`)
-    const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow!, [rowClass])
+    const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow, [rowClass])
+
     if (key === 'z') {
-      const nextPlayButton = nextElement?.querySelector<HTMLButtonElement>('button:has(svg[title="Play"])')
-      nextPlayButton?.click()
+      nextElement?.querySelector<HTMLButtonElement>(buttonSelector)?.click()
     }
 
     if (key === 'a') {
-      const prevPlayButton = prevElement?.querySelector<HTMLButtonElement>('button:has(svg[title="Play"])')
-      prevPlayButton?.click()
+      prevElement?.querySelector<HTMLButtonElement>(buttonSelector)?.click()
     }
   }
 })
