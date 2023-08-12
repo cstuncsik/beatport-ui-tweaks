@@ -1,6 +1,6 @@
 {
   "name": "beatport-ui-tweaks",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A web extension that adds some useful feature to beatport.com site",
   "scripts": {
     "build": "parcel build src/manifest.json --config @parcel/config-webextension",

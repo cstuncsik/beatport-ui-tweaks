@@ -51,7 +51,7 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
   const row = target.closest(`.${rowClass}`)
-  if (row?.contains(target) && target.querySelector(buttonSelector)) {
+  if (row?.contains(target) && row.querySelector(buttonSelector)) {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
     const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
