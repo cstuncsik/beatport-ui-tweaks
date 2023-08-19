@@ -13,7 +13,7 @@ const rowClass = 'row'
 const rowActiveClass = 'bp-ui-tweak-last-played__active'
 const rowActiveClassOriginal = 'current'
 const playedItemBaseSelector = '.cell.title a'
-const buttonSelector = 'button:has(svg[title="Play"])'
+const playOrReplayButtonSelector = 'button:has(svg[title="Play"], svg[title="Replay"])'
 let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
@@ -51,7 +51,7 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
   const row = target.closest(`.${rowClass}`)
-  if (row?.contains(target) && row.querySelector(buttonSelector)) {
+  if (row?.contains(target) && row.querySelector(playOrReplayButtonSelector)) {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
     const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
@@ -82,11 +82,11 @@ document.addEventListener('keyup', e => {
     const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow, [rowClass])
 
     if (key === 'z') {
-      nextElement?.querySelector<HTMLButtonElement>(buttonSelector)?.click()
+      nextElement?.querySelector<HTMLButtonElement>(playOrReplayButtonSelector)?.click()
     }
 
     if (key === 'a') {
-      prevElement?.querySelector<HTMLButtonElement>(buttonSelector)?.click()
+      prevElement?.querySelector<HTMLButtonElement>(playOrReplayButtonSelector)?.click()
     }
   }
 })
