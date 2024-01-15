@@ -50,16 +50,19 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
-  const row = target.closest(`.${rowClass}`)
-  if (row?.contains(target) && row.querySelector(playOrReplayButtonSelector)) {
+  if (target.closest(playOrReplayButtonSelector) || target.matches(playOrReplayButtonSelector)) {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
-    const releaseId = row.querySelector<HTMLLinkElement>(playedItemBaseSelector)?.href.split('/').pop()
+    const row = document.querySelector(
+      `.${rowClass}.${rowActiveClassOriginal}:not(.${rowActiveClass}), .${rowClass}.${rowActiveClass}.${rowActiveClassOriginal}`
+    )
+    const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
+    document.querySelector(`.${rowActiveClass}`)?.classList.remove(rowActiveClassOriginal)
     document.querySelectorAll(`.${rowClass}`).forEach(el => {
       el.classList.remove(rowActiveClass)
     })
-    row.classList.add(rowActiveClass)
+    row?.classList.add(rowActiveClass)
     if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
       scrolledToLastPlayed = true
       await chrome.storage.sync.set({
