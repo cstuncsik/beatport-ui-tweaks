@@ -1,4 +1,4 @@
-@import '../assets/styles/variables';
+@use '../assets/styles/variables';
 
 html {
   font-size: 16px;
@@ -6,8 +6,8 @@ html {
 
 body {
   margin: 0;
-  background: $grey;
-  color: $green;
+  background: variables.$grey;
+  color: variables.$green;
   font-size: 1rem;
   font-family: CoreSans,Arial,sans-serif;
 }

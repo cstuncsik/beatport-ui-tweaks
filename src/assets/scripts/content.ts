@@ -13,7 +13,7 @@ const rowClass = 'row'
 const rowActiveClass = 'bp-ui-tweak-last-played__active'
 const rowActiveClassOriginal = 'current'
 const playedItemBaseSelector = '.cell.title a'
-const playOrReplayButtonSelector = 'button:has(svg[title="Play"], svg[title="Replay"])'
+const playOrReplayButtonSelector = 'button[data-testid="play-button"]'
 let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number

@@ -1,3 +1,4 @@
+import React from 'react'
 import './App.scss'
 import { Options } from './Options'
 import { useFeatureContext } from '../store'

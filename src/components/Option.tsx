@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import './Option.scss'
 import { Feature } from '../store'
 

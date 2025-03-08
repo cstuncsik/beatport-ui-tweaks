@@ -1,4 +1,4 @@
-@import '../assets/styles/variables';
+@use '../assets/styles/variables';
 
 .spinnerContainer {
   position: relative;
@@ -17,14 +17,14 @@
     width: 30px;
     height: 30px;
     border: 5px solid transparent;
-    border-top: 5px solid $green;
+    border-top: 5px solid variables.$green;
     border-radius: 50%;
     animation: spinner 1s ease-in-out infinite;
   }
 
   &::before {
     border-color: #000;
-    border-top-color: $green;
+    border-top-color: variables.$green;
   }
 
   &::after{

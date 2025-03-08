@@ -1,37 +1,41 @@
 {
   "name": "beatport-ui-tweaks",
-  "version": "2.1.4",
+  "version": "2.1.5",
+  "type": "module",
   "description": "A web extension that adds some useful feature to beatport.com site",
   "scripts": {
     "build": "parcel build src/manifest.json --config @parcel/config-webextension",
+    "postbuild": "node scripts/postbuild.js",
     "dev": "parcel watch src/manifest.json --host localhost --config @parcel/config-webextension",
-    "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>",
   "repository": "github:cstuncsik/beatport-ui-tweaks",
   "license": "MIT",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@parcel/config-webextension": "^2.9.3",
-    "@parcel/core": "^2.9.3",
-    "@parcel/transformer-sass": "^2.9.3",
-    "@types/chrome": "^0.0.256",
-    "@types/react": "^18.2.47",
-    "@types/react-dom": "^18.2.18",
-    "@typescript-eslint/eslint-plugin": "^6.18.1",
-    "@typescript-eslint/parser": "^6.18.1",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "parcel": "^2.9.3",
-    "prettier": "^3.2.2",
-    "sharp": "^0.31.1",
-    "typescript": "^5.3.3"
+    "@eslint/js": "^9.21.0",
+    "@parcel/config-webextension": "^2.13.3",
+    "@parcel/core": "^2.13.3",
+    "@parcel/transformer-sass": "^2.13.3",
+    "@types/chrome": "^0.0.308",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "archiver": "^7.0.1",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react": "^7.37.4",
+    "globals": "^16.0.0",
+    "parcel": "^2.13.3",
+    "sharp": "^0.33.5",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.0"
   },
   "alias": {
     "process": {
