@@ -14,34 +14,42 @@ const rowActiveClass = 'bp-ui-tweak-last-played__active'
 const rowActiveClassOriginal = 'current'
 const playedItemBaseSelector = '.cell.title a'
 const playOrReplayButtonSelector = 'button[data-testid="play-button"]'
+
+let lastPlayed: HTMLElement | null = null
 let scrolledToLastPlayed = false
 
 let timeoutId: ReturnType<typeof setTimeout> | undefined | number
 const mutationObserver = new MutationObserver(mutationList => {
-  for (const mutation of mutationList) {
-    if (mutation.type === 'childList' && body.classList.contains('bp-ui-tweak-remember-last-played')) {
-      clearTimeout(timeoutId)
-
-      timeoutId = setTimeout(async () => {
-        const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
-        const lastPlayedReleases = await getLastPlayedReleases()
-        const { element: lastPlayed } = await waitUntilElementIsVisible(
-          `${playedItemBaseSelector}[href$="/${lastPlayedReleases[genreOrArtist]?.[type]}"]`
-        )
-        if (lastPlayed) {
-          const { top } = getOffset(lastPlayed, body)
-          lastPlayed.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
-          if (top && !scrolledToLastPlayed) {
-            window.scrollTo({
-              top: top - window.innerHeight / 2,
-              behavior: 'smooth'
-            })
-            scrolledToLastPlayed = true
-          }
-        }
-      }, 100)
-    }
+  if(
+    !body.classList.contains('bp-ui-tweak-remember-last-played') ||
+    !mutationList.some(mutation => mutation.type === 'childList') ||
+    scrolledToLastPlayed ||
+    lastPlayed
+  ) {
+    return
   }
+
+  clearTimeout(timeoutId)
+
+  timeoutId = setTimeout(async () => {
+    const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
+    const lastPlayedReleases = await getLastPlayedReleases()
+    const { element } = await waitUntilElementIsVisible(
+      `${playedItemBaseSelector}[href$="/${lastPlayedReleases[genreOrArtist]?.[type]}"]`
+    )
+    if (element) {
+      lastPlayed = element
+      const { top } = getOffset(lastPlayed, body)
+      lastPlayed.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
+      if (top && !scrolledToLastPlayed) {
+        window.scrollTo({
+          top: top - window.innerHeight / 2,
+          behavior: 'smooth'
+        })
+        scrolledToLastPlayed = true
+      }
+    }
+  }, 100)
 })
 
 body.classList.add('bp-ui-tweaks-extension')
