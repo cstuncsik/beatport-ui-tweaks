@@ -58,12 +58,11 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 
 body.addEventListener('click', async e => {
   const target = e.target as HTMLElement
-  if (target.closest(playOrReplayButtonSelector) || target.matches(playOrReplayButtonSelector)) {
+  const targetPlayBtn = target.matches(playOrReplayButtonSelector) ? target : target.closest(playOrReplayButtonSelector)
+  if (targetPlayBtn) {
+    const row = targetPlayBtn.closest(`.${rowClass}`)
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
-    const row = document.querySelector(
-      `.${rowClass}.${rowActiveClassOriginal}:not(.${rowActiveClass}), .${rowClass}.${rowActiveClass}.${rowActiveClassOriginal}`
-    )
     const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
     document.querySelector(`.${rowActiveClass}`)?.classList.remove(rowActiveClassOriginal)
@@ -84,7 +83,7 @@ body.addEventListener('click', async e => {
       })
     }
   }
-})
+}, true)
 
 document.addEventListener('keyup', e => {
   const { key } = e
