@@ -18,60 +18,63 @@ const playOrReplayButtonSelector = 'button[data-testid="play-button"]'
 let lastPlayed: HTMLElement | null = null
 let scrolledToLastPlayed = false
 
-let timeoutId: ReturnType<typeof setTimeout> | undefined | number
-const mutationObserver = new MutationObserver(mutationList => {
-  if(
-    !body.classList.contains('bp-ui-tweak-remember-last-played') ||
-    !mutationList.some(mutation => mutation.type === 'childList') ||
-    scrolledToLastPlayed ||
-    lastPlayed
-  ) {
-    return
+const initializeActiveObserver = () => {
+  if(body.classList.contains('bp-ui-tweak-highlight-played-item')) {
+    const activeObserver = new MutationObserver(() => {
+      document.querySelector(`.${rowActiveClass}`)?.classList.remove(rowActiveClass)
+
+      const activeRow = document.querySelector(`.${ rowClass }.${ rowActiveClassOriginal }`)
+      if (activeRow) {
+        activeRow.classList.add(rowActiveClass)
+        activeObserver.disconnect()
+      }
+    })
+    activeObserver.observe(body, { childList: true, subtree: true })
   }
+}
 
-  clearTimeout(timeoutId)
-
-  timeoutId = setTimeout(async () => {
+const mutationObserver = new MutationObserver(async () => {
+  if(
+    body.classList.contains('bp-ui-tweak-remember-last-played') &&
+    !scrolledToLastPlayed
+  ) {
     const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
     const lastPlayedReleases = await getLastPlayedReleases()
     const { element } = await waitUntilElementIsVisible(
-      `${playedItemBaseSelector}[href$="/${lastPlayedReleases[genreOrArtist]?.[type]}"]`
+      `${ playedItemBaseSelector }[href$="/${ lastPlayedReleases[genreOrArtist]?.[type] }"]`
     )
     if (element) {
       lastPlayed = element
       const { top } = getOffset(lastPlayed, body)
-      lastPlayed.closest(`.${rowClass}`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
+      lastPlayed.closest(`.${ rowClass }`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
       if (top && !scrolledToLastPlayed) {
         window.scrollTo({
           top: top - window.innerHeight / 2,
           behavior: 'smooth'
         })
         scrolledToLastPlayed = true
+        mutationObserver.disconnect()
       }
     }
-  }, 100)
+  }
 })
 
 body.classList.add('bp-ui-tweaks-extension')
 
 mutationObserver.observe(body, { childList: true, subtree: true })
+initializeActiveObserver()
 
 body.addEventListener('click', async e => {
-  const target = e.target as HTMLElement
-  const targetPlayBtn = target.matches(playOrReplayButtonSelector) ? target : target.closest(playOrReplayButtonSelector)
-  if (targetPlayBtn) {
-    const row = targetPlayBtn.closest(`.${rowClass}`)
-    const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
-    const lastPlayedReleases = await getLastPlayedReleases()
-    const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
+  if(body.classList.contains('bp-ui-tweak-remember-last-played')) {
+    const target = e.target as HTMLElement
+    const targetPlayBtn = target.matches(playOrReplayButtonSelector) ? target : target.closest(playOrReplayButtonSelector)
+    if (targetPlayBtn) {
+      const row = targetPlayBtn.closest(`.${rowClass}`)
+      const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
-    document.querySelector(`.${rowActiveClass}`)?.classList.remove(rowActiveClassOriginal)
-    document.querySelectorAll(`.${rowClass}`).forEach(el => {
-      el.classList.remove(rowActiveClass)
-    })
-    row?.classList.add(rowActiveClass)
-    if (body.classList.contains('bp-ui-tweak-remember-last-played')) {
       scrolledToLastPlayed = true
+      const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
+      const lastPlayedReleases = await getLastPlayedReleases()
       await chrome.storage.sync.set({
         [lastPlayedStorageKey]: {
           ...lastPlayedReleases,
@@ -83,6 +86,7 @@ body.addEventListener('click', async e => {
       })
     }
   }
+  initializeActiveObserver()
 }, true)
 
 document.addEventListener('keyup', e => {
