@@ -6,7 +6,7 @@ export type LastPlayed = Record<string, Record<string, string>>
 export const lastPlayedStorageKey = 'beatport-last-played'
 export const featuresStorageKey = 'beatport-ui-features'
 
-export const getItem = (key: string): Promise<never> =>
+export const getItem = <T>(key: string): Promise<T> =>
   new Promise((resolve, reject) => {
     chrome.storage.sync.get(key, result => {
       if (chrome.runtime.lastError) {
@@ -15,7 +15,7 @@ export const getItem = (key: string): Promise<never> =>
       if (!result[key]) {
         return reject(new Error(`No item found for key: ${key}`))
       }
-      resolve(result[key])
+      resolve(result[key] as T)
     })
   })
 

@@ -1,0 +1,10 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  lmdb: true
+  msgpackr-extract: true
+  sharp: true
+peerDependencyRules:
+  allowedVersions:
+    # eslint-plugin-react 7.37.5 has not declared ESLint 10 support yet, lint runs clean on it
+    'eslint-plugin-react>eslint': '10'
