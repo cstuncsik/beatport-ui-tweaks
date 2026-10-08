@@ -1,0 +1,33 @@
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_580c1755d045f4 1-72,74-121
+  s_31d2ac64b1239b::t_216e5bbdbe1d16 73
+playwright.config.ts
+  s_31d2ac64b1239b::t_580c1755d045f4 1-9
+pnpm-workspace.yaml
+  s_31d2ac64b1239b::t_38fbfac653333f 7-10
+.github/workflows/ci.yml
+  s_31d2ac64b1239b::t_580c1755d045f4 1-30
+.gitignore
+  s_31d2ac64b1239b::t_580c1755d045f4 107-109
+package.json
+  s_31d2ac64b1239b::t_580c1755d045f4 12-13,18
+  s_31d2ac64b1239b::t_38fbfac653333f 28
+pnpm-lock.yaml
+  s_31d2ac64b1239b::t_0a94a4c0e14456 1-158,188-190,898-902,1986-1995,3206-3209,4439-4444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7298bb3b6268ffdccf25a921516ada56e419fa48",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
