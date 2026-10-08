@@ -2,7 +2,7 @@ import { createWriteStream, existsSync, mkdirSync } from "fs";
 import { readFile } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import archiver from "archiver";
+import { ZipArchive } from "archiver";
 
 // Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -35,7 +35,7 @@ if (!existsSync(archivesDir)) {
 
 // Create a file stream and archive
 const output = createWriteStream(zipFilePath);
-const archive = archiver("zip", { zlib: { level: 9 } });
+const archive = new ZipArchive({ zlib: { level: 9 } });
 
 output.on("close", () => {
   console.log(`ZIP archive created successfully: ${zipFilePath} (${archive.pointer()} bytes)`);
