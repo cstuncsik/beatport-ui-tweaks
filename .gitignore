@@ -104,3 +104,6 @@ archives
 
 # TernJS port file
 .tern-port
+
+# Playwright
+test-results
