@@ -1,4 +1,6 @@
-// Regenerates the Chrome Web Store screenshots in store-assets/ from the built extension.
+// Regenerates the Chrome Web Store screenshots in store-assets/ from the built extension:
+// page-screenshot.jpg is the whole page with the popup open, extension-screenshot.jpg a close-up
+// of the popup in the top right corner with part of the page around it. Both 1280x800.
 // Needs `pnpm build` first. Opens a real browser window: Beatport serves its bot challenge to headless ones.
 import { chromium } from '@playwright/test'
 import sharp from 'sharp'
@@ -7,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 const dist = fileURLToPath(new URL('../dist', import.meta.url))
 const assets = fileURLToPath(new URL('../store-assets/', import.meta.url))
-const url = 'https://www.beatport.com/genre/techno-peak-time-driving/6/top-100'
+const url = 'https://www.beatport.com/genre/drum-bass/1/tracks'
 const scale = 2
 const size = { width: 1280, height: 800 }
 
@@ -45,7 +47,6 @@ try {
   await page.mouse.move(size.width - 10, size.height / 2)
   await page.waitForTimeout(2500)
   const pageShot = await page.screenshot()
-  await sharp(pageShot).resize(size.width, size.height).jpeg({ quality: 92 }).toFile(`${assets}page-screenshot.jpg`)
 
   const manifest = JSON.parse(readFileSync(`${dist}/manifest.json`, 'utf8'))
   const popup = await context.newPage()
@@ -79,7 +80,12 @@ try {
     ])
     .png()
     .toBuffer()
-  await sharp(composed).resize(size.width, size.height).jpeg({ quality: 92 }).toFile(`${assets}extension-screenshot.jpg`)
+  await sharp(composed).resize(size.width, size.height).jpeg({ quality: 92 }).toFile(`${assets}page-screenshot.jpg`)
+  // close-up: the top right quarter at native 2x pixels, so the popup is shown twice as large
+  await sharp(composed)
+    .extract({ left: size.width * scale - size.width, top: 0, width: size.width, height: size.height })
+    .jpeg({ quality: 92 })
+    .toFile(`${assets}extension-screenshot.jpg`)
 
   console.log(`wrote ${assets}page-screenshot.jpg and extension-screenshot.jpg (${size.width}x${size.height})`)
 } finally {
