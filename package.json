@@ -11,7 +11,8 @@
     "lint:fix": "eslint --fix",
     "test": "playwright test --project default",
     "typecheck": "tsc --noEmit",
-    "test:live": "playwright test --project live"
+    "test:live": "playwright test --project live",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>",
   "repository": "github:cstuncsik/beatport-ui-tweaks",
