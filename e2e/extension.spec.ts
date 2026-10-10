@@ -1,37 +1,7 @@
-import { test as base, expect, type BrowserContext, type Page, type Worker } from '@playwright/test'
-import { existsSync, readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { test, expect, featureIds } from './fixtures'
+import type { Page } from '@playwright/test'
 
-const dist = fileURLToPath(new URL('../dist', import.meta.url))
 const siteUrl = 'https://www.beatport.com/genre/techno/6/top-100'
-const featureIds = [
-  'bp-ui-tweak-remember-last-played',
-  'bp-ui-tweak-highlight-played-item',
-  'bp-ui-tweak-next-prev-play-keyboard'
-]
-
-const test = base.extend<{ context: BrowserContext; worker: Worker; popupUrl: string }>({
-  context: async ({ playwright }, use) => {
-    if (!existsSync(`${dist}/manifest.json`)) {
-      throw new Error('dist/ is missing, run `pnpm build` first')
-    }
-    // Full Chromium, the headless shell cannot run extensions
-    const context = await playwright.chromium.launchPersistentContext('', {
-      channel: 'chromium',
-      args: [`--disable-extensions-except=${dist}`, `--load-extension=${dist}`]
-    })
-    await use(context)
-    await context.close()
-  },
-  worker: async ({ context }, use) => {
-    const [worker] = context.serviceWorkers()
-    await use(worker ?? (await context.waitForEvent('serviceworker')))
-  },
-  popupUrl: async ({ worker }, use) => {
-    const manifest = JSON.parse(readFileSync(`${dist}/manifest.json`, 'utf8'))
-    await use(`chrome-extension://${new URL(worker.url()).host}/${manifest.action.default_popup}`)
-  }
-})
 
 // Stand-in for a Beatport track list. The content script relies on .row, .cell.title a[href]
 // and button[data-testid="play-button"]. Like the real site (a SPA) rows are rendered after
