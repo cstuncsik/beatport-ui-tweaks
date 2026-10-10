@@ -1,4 +1,4 @@
-# ![Beatport UI Tweaks](https://raw.githubusercontent.com/cstuncsik/beatport-ui-tweaks/master/src/assets/images/icon.png) Beatport UI Tweaks
+# ![Beatport UI Tweaks](src/assets/images/icon.png) Beatport UI Tweaks
 A web extension that adds some useful feature to [beatport.com](https://www.beatport.com/) site
 
 ## Features
@@ -8,9 +8,9 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 
 ## Screenshots
 ### Extension
-![Extension screenshot](https://raw.githubusercontent.com/cstuncsik/beatport-ui-tweaks/master/store-assets/extension-screenshot.jpg)
+![Extension screenshot](store-assets/extension-screenshot.jpg)
 ### [beatport.com](https://www.beatport.com/) with extension enabled
-![Page screenshot](https://raw.githubusercontent.com/cstuncsik/beatport-ui-tweaks/master/store-assets/page-screenshot.jpg)
+![Page screenshot](store-assets/page-screenshot.jpg)
 
 ## Installation
 
