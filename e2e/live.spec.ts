@@ -42,9 +42,9 @@ test('the extension still works on the live Beatport top 100', async ({ page, wo
     .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { 'top-100': trackId } } })
 
   await expect
-    .poll(() => page.locator('.cell.bpm > div[data-bp-camelot]').count(), { message: 'Camelot codes on the key column' })
+    .poll(() => page.locator('.cell.title[data-bp-camelot]').count(), { message: 'Camelot codes on the title column' })
     .toBeGreaterThan(10)
-  expect(await page.locator('.cell.bpm > div[data-bp-camelot]').first().getAttribute('data-bp-camelot')).toMatch(/^(1[0-2]|[1-9])[AB]$/)
+  expect(await page.locator('.cell.title[data-bp-camelot]').first().getAttribute('data-bp-camelot')).toMatch(/^(1[0-2]|[1-9])[AB]$/)
 
   await page.keyboard.press('z')
   await expect(trackRows.nth(2), 'z plays the next track').toHaveClass(/current/, { timeout: 15_000 })

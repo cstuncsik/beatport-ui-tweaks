@@ -30,7 +30,7 @@ export const defaultFeatures: Feature[] = [
   {
     id: 'bp-ui-tweak-camelot-key',
     label: 'Show Camelot key',
-    description: 'Adds the Camelot code next to the key, for harmonic mixing',
+    description: 'Adds the Camelot code of the key, for harmonic mixing',
     enabled: true
   },
   {

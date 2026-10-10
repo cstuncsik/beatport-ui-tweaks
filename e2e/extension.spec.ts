@@ -239,14 +239,16 @@ test('filter box in the add-to-playlist picker narrows the list as you type', as
 test('shows wheel-colored Camelot codes next to every key, toggle hides them', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
-  const keyCell = (row: number) => rows(page).nth(row).locator('.cell.bpm > div').nth(1)
+  // in lists the code is read from the key line but the chip goes on the title cell, one column for all rows
+  const keyCell = (row: number) => rows(page).nth(row).locator('.cell.title')
   const chip = (locator: ReturnType<typeof keyCell>) =>
     locator.evaluate(el => [getComputedStyle(el, '::after').content, getComputedStyle(el).getPropertyValue('--bp-camelot-hue').trim()])
 
   await expect(keyCell(0)).toHaveAttribute('data-bp-camelot', '7A')
   await expect(keyCell(1)).toHaveAttribute('data-bp-camelot', '3A')
   await expect(keyCell(2)).toHaveAttribute('data-bp-camelot', '5B')
-  await expect(rows(page).nth(0).locator('.cell.bpm > div').nth(0), 'genre cell gets no code').not.toHaveAttribute('data-bp-camelot', /./)
+  await expect(rows(page).nth(0).locator('.cell.bpm > div[data-bp-camelot]'), 'the bpm cell itself stays clean').toHaveCount(0)
+  expect(await keyCell(0).evaluate(el => getComputedStyle(el, '::after').position), 'chip pinned to the cell edge').toBe('absolute')
   await expect(page.locator('[class*="metaItem"]:has-text("Key:") > span'), 'track detail key').toHaveAttribute('data-bp-camelot', '11A')
   await expect(page.locator('[class*="metaItem"]:has-text("BPM:") > span'), 'track detail bpm').not.toHaveAttribute('data-bp-camelot', /./)
   await expect(page.locator('#bp-player p').nth(1), 'player key').toHaveAttribute('data-bp-camelot', '8A')
