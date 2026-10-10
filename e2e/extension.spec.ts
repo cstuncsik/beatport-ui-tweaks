@@ -199,6 +199,10 @@ test('filter box in the add-to-playlist picker narrows the list as you type', as
           <div class="scrollable" style="height: 40px; overflow-y: auto">${firstPage}</div>
         </div>`
       )
+      // Beatport's focus trap moves focus to the modal container a tick after it opened
+      const modal = document.querySelector<HTMLElement>('[class*="AddToPlaylistModal_wrapper"]')!
+      modal.tabIndex = -1
+      setTimeout(() => modal.focus(), 0)
       const list = document.querySelector<HTMLElement>('.scrollable')!
       list.addEventListener('scroll', () => {
         if (list.scrollTop + list.clientHeight === list.scrollHeight && !list.dataset.loaded) {

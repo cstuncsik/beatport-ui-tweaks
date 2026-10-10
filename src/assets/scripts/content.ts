@@ -209,9 +209,18 @@ const ensureFilterInput = () => {
   }
   let input = header.querySelector<HTMLInputElement>(`.${filterInputClass}`)
   if (!input) {
-    input = createFilterInput(picker)
-    header.prepend(input)
-    input.focus()
+    const box = createFilterInput(picker)
+    header.prepend(box)
+    box.focus()
+    // the modal's focus trap moves focus to its container a tick after opening, take it back once
+    const retake = (event: FocusEvent) => {
+      if (event.target !== box) {
+        box.focus()
+      }
+    }
+    document.addEventListener('focusin', retake, { once: true })
+    setTimeout(() => document.removeEventListener('focusin', retake), 1000)
+    input = box
   }
   applyFilter(picker, input)
 }
