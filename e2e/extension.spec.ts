@@ -92,15 +92,26 @@ test('remembers the last played track and highlights it after reload', async ({ 
   await renderRows(page, ['111', '222', '333'])
   await expect(rows(page).nth(1)).toHaveClass(/bp-ui-tweak-last-played__active/)
   await expect(rows(page).nth(0)).not.toHaveClass(/bp-ui-tweak-last-played__active/)
+
+  await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', false)
+  await expect(rows(page).nth(1), 'off: the row is as Beatport rendered it').not.toHaveClass(/bp-ui-tweak-last-played__active|current/)
+  await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', true)
+  await expect(rows(page).nth(1), 'on: marked again').toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect(rows(page).nth(1)).toHaveClass(/current/)
 })
 
-test('highlights the row that is playing', async ({ page }) => {
+test('highlights the row that is playing', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222'])
   await rows(page).nth(1).getByTestId('play-button').click()
   // the observer reacts to the next DOM change, on the real site the player re-renders constantly
   await page.locator('#list').evaluate(list => list.append(document.createElement('div')))
   await expect(rows(page).nth(1)).toHaveClass(/bp-ui-tweak-last-played__active/)
+
+  await toggleFeature(worker, 'bp-ui-tweak-highlight-played-item', false)
+  await expect(rows(page).nth(1), 'off: class gone').not.toHaveClass(/bp-ui-tweak-last-played__active/)
+  await toggleFeature(worker, 'bp-ui-tweak-highlight-played-item', true)
+  await expect(rows(page).nth(1), 'on: the playing row is highlighted at once').toHaveClass(/bp-ui-tweak-last-played__active/)
 })
 
 test('z and a keys play the next and previous track', async ({ page }) => {
@@ -115,7 +126,7 @@ test('z and a keys play the next and previous track', async ({ page }) => {
   await expect(rows(page).nth(1)).toHaveClass(/current/)
 })
 
-test('recently used playlists lead the add-to-playlist list', async ({ page }) => {
+test('recently used playlists lead the add-to-playlist list', async ({ page, worker }) => {
   // Beatport's picker pages through /v4/my/playlists/ with axios over XMLHttpRequest, which the
   // extension patches in the page's world. Same origin as the stub page here, so no CORS in the way.
   const playlist = (id: number) => ({ id, name: `Playlist ${id}`, track_count: 1 })
@@ -173,6 +184,21 @@ test('recently used playlists lead the add-to-playlist list', async ({ page }) =
         pageParams: [1, 2]
       }
     ]
+  ])
+
+  // popup toggle: off shows Beatport's own order, on the history order, network and cache alike
+  await toggleFeature(worker, 'bp-ui-tweak-mru-playlists', false)
+  expect(await ids(1), 'off: server order').toEqual([1, 2])
+  await toggleFeature(worker, 'bp-ui-tweak-mru-playlists', true)
+  expect(await ids(1), 'on: history order again').toEqual([3, 1, 2])
+  const cachedOrders = await page.evaluate(() =>
+    (window as unknown as { __queryCalls: [unknown, { pages: { results: { id: number }[] }[] }][] }).__queryCalls
+      .slice(1)
+      .map(([, data]) => data.pages.map(cachedPage => cachedPage.results.map(({ id }) => id)))
+  )
+  expect(cachedOrders, 'cached pages follow the toggle').toEqual([
+    [[1, 2], [3]],
+    [[3, 1, 2], []]
   ])
   await xhr('POST', '2/tracks/bulk/', JSON.stringify({ track_ids: [12] }))
   expect(await ids(1), 'latest use first, the previous top is second').toEqual([2, 3, 1])
@@ -263,6 +289,7 @@ test('shows wheel-colored Camelot codes next to every key, toggle hides them', a
   const toggle = (enabled: boolean) => toggleFeature(worker, 'bp-ui-tweak-camelot-key', enabled)
   await toggle(false)
   await expect(page.locator('body')).not.toHaveClass(/bp-ui-tweak-camelot-key/)
+  await expect(page.locator('[data-bp-camelot]'), 'off: no trace left in the DOM').toHaveCount(0)
   expect(await chip(keyCell(0))).toEqual(['none', ''])
   await renderRows(page, ['444'])
   await expect(keyCell(0), 'no annotation while off').not.toHaveAttribute('data-bp-camelot', /./)
