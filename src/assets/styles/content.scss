@@ -7,3 +7,31 @@
     }
   }
 }
+
+// Camelot chip, rendered from data-bp-camelot set by content.ts. Hue follows the Camelot wheel:
+// 1 teal, 2 green, 3 lime, 4 yellow, 5 orange, 6 orange-red, 7 red, 8 pink, 9 magenta, 10 violet,
+// 11 blue, 12 cyan. A (minor) and B (major) share the hue like on the real wheel.
+.bp-ui-tweaks-extension.bp-ui-tweak-camelot-key {
+  [data-bp-camelot]::after {
+    content: attr(data-bp-camelot);
+    display: inline-block;
+    margin-left: 0.45em;
+    padding: 0 0.35em;
+    border: 1px solid hsl(var(--bp-camelot-hue) 80% 60% / 0.7);
+    border-radius: 3px;
+    background: hsl(var(--bp-camelot-hue) 80% 55% / 0.22);
+    color: hsl(var(--bp-camelot-hue) 90% 72%);
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    vertical-align: baseline;
+  }
+
+  @for $n from 1 through 12 {
+    [data-bp-camelot='#{$n}A'],
+    [data-bp-camelot='#{$n}B'] {
+      --bp-camelot-hue: #{165 - 30 * ($n - 1)};
+    }
+  }
+}
