@@ -1,0 +1,21 @@
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_f091048f078785 27-28,112-113
+src/assets/scripts/content.ts
+  s_31d2ac64b1239b::t_f091048f078785 119-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e70cdb40dcd63846fc5f53a33cb048b2b851e522",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
