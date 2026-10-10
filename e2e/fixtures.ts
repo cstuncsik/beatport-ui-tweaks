@@ -6,7 +6,8 @@ export const dist = fileURLToPath(new URL('../dist', import.meta.url))
 export const featureIds = [
   'bp-ui-tweak-remember-last-played',
   'bp-ui-tweak-highlight-played-item',
-  'bp-ui-tweak-next-prev-play-keyboard'
+  'bp-ui-tweak-next-prev-play-keyboard',
+  'bp-ui-tweak-camelot-key'
 ]
 
 export type Options = { headlessMode: boolean }

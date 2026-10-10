@@ -7,6 +7,7 @@ import {
 import { Feature } from '../../store'
 import { getGenreOrArtistAndTypeFromUrl } from './utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
+import { camelotFromKeyText } from './utils/musical'
 
 const body = document.querySelector<HTMLElement>('body')!
 const rowClass = 'row'
@@ -105,11 +106,66 @@ document.addEventListener('keyup', e => {
   }
 })
 
+// Camelot key: every element that shows a musical key gets data-bp-camelot="10A", the chip itself
+// is rendered by content.scss from that attribute, so React never sees an extra DOM node.
+const camelotFeatureClass = 'bp-ui-tweak-camelot-key'
+const camelotAttribute = 'data-bp-camelot'
+let camelotObserver: MutationObserver | null = null
+let camelotFrame = 0
+
+const camelotKeyElements = (): Element[] => [
+  // list tables on genre, chart, release and track pages: "86 BPM - D Minor"
+  ...document.querySelectorAll(`.cell.bpm > div:not([${camelotAttribute}])`),
+  // track detail meta: <span>Key:</span><span>D Minor</span>
+  ...[...document.querySelectorAll('[class*="metaItem"] > span')]
+    .filter(span => span.textContent?.trim() === 'Key:')
+    .map(span => span.nextElementSibling),
+  // player bar: "A minor", changes with the track so it is re-read every pass
+  ...document.querySelectorAll('#bp-player p')
+].filter((element): element is Element => !!element)
+
+const annotateCamelotKeys = () => {
+  camelotKeyElements().forEach(element => {
+    const code = camelotFromKeyText(element.textContent ?? '')
+    if (code) {
+      if (element.getAttribute(camelotAttribute) !== code) {
+        element.setAttribute(camelotAttribute, code)
+      }
+    } else if (element.hasAttribute(camelotAttribute)) {
+      element.removeAttribute(camelotAttribute)
+    }
+  })
+}
+
+const scheduleCamelotPass = () => {
+  if (!camelotFrame) {
+    camelotFrame = requestAnimationFrame(() => {
+      camelotFrame = 0
+      annotateCamelotKeys()
+    })
+  }
+}
+
+const syncCamelotObserver = () => {
+  const enabled = body.classList.contains(camelotFeatureClass)
+  if (enabled && !camelotObserver) {
+    camelotObserver = new MutationObserver(scheduleCamelotPass)
+    // attribute changes are not observed, so our own writes never re-trigger the pass
+    camelotObserver.observe(body, { childList: true, subtree: true, characterData: true })
+    scheduleCamelotPass()
+  }
+  if (!enabled && camelotObserver) {
+    camelotObserver.disconnect()
+    camelotObserver = null
+  }
+}
+
 chrome.runtime.onMessage.addListener(request => {
   const {
     feature: { id, enabled }
   } = request
   toggleBodyFeatureClassNames(id, enabled)
+  syncCamelotObserver()
 })
 
 chrome.runtime.sendMessage({ action: 'get-beatport-ui-features' }, response => {
@@ -118,4 +174,5 @@ chrome.runtime.sendMessage({ action: 'get-beatport-ui-features' }, response => {
     const { id, enabled } = feature
     toggleBodyFeatureClassNames(id, enabled)
   })
+  syncCamelotObserver()
 })

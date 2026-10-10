@@ -26,6 +26,12 @@ export const defaultFeatures: Feature[] = [
     label: 'Keyboard playback',
     description: 'A plays the previous track, Z the next one',
     enabled: true
+  },
+  {
+    id: 'bp-ui-tweak-camelot-key',
+    label: 'Show Camelot key',
+    description: 'Adds the Camelot code next to the key, for harmonic mixing',
+    enabled: true
   }
 ]
 

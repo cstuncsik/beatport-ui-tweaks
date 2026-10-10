@@ -9,3 +9,25 @@ export const convertKeySignatureToCamelot = (key: KeySignatures, mode: Modes): s
 
   return /major/i.test(mode) ? camelotMajor[idx] : camelotMinor[idx]
 }
+
+// Beatport writes flats ("Bb Minor"), the table above is in sharps
+const flatsToSharps: Record<string, KeySignatures> = {
+  Cb: 'B',
+  Db: 'C#',
+  Eb: 'D#',
+  Fb: 'E',
+  Gb: 'F#',
+  Ab: 'G#',
+  Bb: 'A#'
+}
+
+// "86 BPM - Bb Minor", "Key: D Minor", "A minor" -> "3A", "7A", "8A"; null when the text has no key
+export const camelotFromKeyText = (text: string): string | null => {
+  const match = /([A-G])([b#♭♯])?\s*(major|minor|Major|Minor)/.exec(text)
+  if (!match) {
+    return null
+  }
+  const [, letter, accidental = '', mode] = match
+  const key = `${letter}${accidental.replace('♭', 'b').replace('♯', '#')}`
+  return convertKeySignatureToCamelot(flatsToSharps[key] ?? (key as KeySignatures), mode.toLowerCase() as Modes) ?? null
+}
