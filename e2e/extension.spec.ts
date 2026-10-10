@@ -24,8 +24,8 @@ const visitTrackList = async (page: Page) => {
     route.fulfill({
       contentType: 'text/html',
       body: `<!doctype html>
-        <div class="TrackMeta_metaItem__x1"><span>BPM:</span><span>86</span></div>
-        <div class="TrackMeta_metaItem__x1"><span>Key:</span><span>Gb Minor</span></div>
+        <div class="TrackMeta_metaItem__x1"><div>BPM<!-- -->:</div><span>86</span></div>
+        <div class="TrackMeta_metaItem__x1"><div>Key<!-- -->:</div><span>Gb Minor</span></div>
         <main id="list"></main>
         <div id="bp-player"><p>87 bpm</p><p>A minor</p></div>`
     })
@@ -109,7 +109,8 @@ test('shows wheel-colored Camelot codes next to every key, toggle hides them', a
   await expect(keyCell(1)).toHaveAttribute('data-bp-camelot', '3A')
   await expect(keyCell(2)).toHaveAttribute('data-bp-camelot', '5B')
   await expect(rows(page).nth(0).locator('.cell.bpm > div').nth(0), 'genre cell gets no code').not.toHaveAttribute('data-bp-camelot', /./)
-  await expect(page.locator('[class*="metaItem"] > span').nth(3), 'track detail key').toHaveAttribute('data-bp-camelot', '11A')
+  await expect(page.locator('[class*="metaItem"]:has-text("Key:") > span'), 'track detail key').toHaveAttribute('data-bp-camelot', '11A')
+  await expect(page.locator('[class*="metaItem"]:has-text("BPM:") > span'), 'track detail bpm').not.toHaveAttribute('data-bp-camelot', /./)
   await expect(page.locator('#bp-player p').nth(1), 'player key').toHaveAttribute('data-bp-camelot', '8A')
   await expect(page.locator('#bp-player p').nth(0), 'player bpm').not.toHaveAttribute('data-bp-camelot', /./)
   expect(await chip(keyCell(0))).toEqual(['"7A"', '-15'])

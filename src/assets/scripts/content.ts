@@ -116,10 +116,10 @@ let camelotFrame = 0
 const camelotKeyElements = (): Element[] => [
   // list tables on genre, chart, release and track pages: "86 BPM - D Minor"
   ...document.querySelectorAll(`.cell.bpm > div:not([${camelotAttribute}])`),
-  // track detail meta: <span>Key:</span><span>D Minor</span>
-  ...[...document.querySelectorAll('[class*="metaItem"] > span')]
-    .filter(span => span.textContent?.trim() === 'Key:')
-    .map(span => span.nextElementSibling),
+  // track detail meta: <div>Key:</div><span>D Minor</span>
+  ...[...document.querySelectorAll('[class*="metaItem"] > *')]
+    .filter(label => label.textContent?.trim() === 'Key:')
+    .map(label => label.nextElementSibling),
   // player bar: "A minor", changes with the track so it is re-read every pass
   ...document.querySelectorAll('#bp-player p')
 ].filter((element): element is Element => !!element)
