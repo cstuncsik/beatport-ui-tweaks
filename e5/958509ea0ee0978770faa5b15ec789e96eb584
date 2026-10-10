@@ -1,0 +1,31 @@
+src/manifest.json
+  s_0238d1d57d563b::t_065a7b57dbabe6 21-22
+  s_0238d1d57d563b::t_bfe44d0d8dcfc6 19-20,23-24
+README.md
+  s_0238d1d57d563b::t_c430aaaed78e15 9
+src/store.tsx
+  s_0238d1d57d563b::t_cc50c9af5eb25f 35-40
+e2e/fixtures.ts
+  s_0238d1d57d563b::t_919c3c42fc500d 10-11
+src/assets/scripts/mru-playlists.ts
+  s_0238d1d57d563b::t_b48a536aa1c5ba 1-7,10-132
+  s_0238d1d57d563b::t_cbb63286dd8cce 8-9
+e2e/extension.spec.ts
+  s_0238d1d57d563b::t_7512fe46a300e8 101-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e5958509ea0ee0978770faa5b15ec789e96eb584",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
