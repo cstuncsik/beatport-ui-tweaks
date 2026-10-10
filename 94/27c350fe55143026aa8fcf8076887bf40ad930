@@ -1,0 +1,19 @@
+README.md
+  s_31d2ac64b1239b::t_5c6f73c3e9acba 1,11,13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9427c350fe55143026aa8fcf8076887bf40ad930",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
