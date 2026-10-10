@@ -1,0 +1,29 @@
+.github/workflows/live-check.yml
+  s_31d2ac64b1239b::t_79cd7e39e99893 1-47
+package.json
+  s_31d2ac64b1239b::t_79cd7e39e99893 12-14
+e2e/fixtures.ts
+  s_31d2ac64b1239b::t_79cd7e39e99893 1-39
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_79cd7e39e99893 1-2
+e2e/live.spec.ts
+  s_31d2ac64b1239b::t_79cd7e39e99893 1-46
+playwright.config.ts
+  s_31d2ac64b1239b::t_79cd7e39e99893 2,4,8-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ded21eca2cfb8b332e1cd1f9526d2afb393b7569",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
