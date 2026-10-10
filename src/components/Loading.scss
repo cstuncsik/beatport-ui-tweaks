@@ -23,7 +23,7 @@
   }
 
   &::before {
-    border-color: #000;
+    border-color: variables.$border;
     border-top-color: variables.$green;
   }
 

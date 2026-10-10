@@ -18,8 +18,17 @@ export const Option = ({ feature, toggleFeature }: OptionProps) => {
   return (
     <li>
       <label htmlFor={feature.id} className="option">
-        <input type="checkbox" id={feature.id} onChange={() => toggleFeature(feature.id)} checked={feature.enabled} />
-        <span>{feature.label}</span>
+        <span className="option__text">
+          <span className="option__label">{feature.label}</span>
+          <span className="option__description">{feature.description}</span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          id={feature.id}
+          onChange={() => toggleFeature(feature.id)}
+          checked={feature.enabled}
+        />
       </label>
     </li>
   )

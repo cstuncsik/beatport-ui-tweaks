@@ -62,8 +62,6 @@ const renderRows = (page: Page, ids: string[]) =>
 const rows = (page: Page) => page.locator('.row')
 
 test('popup lists the default features and persists a toggle', async ({ page, popupUrl }) => {
-  // index.html links Google Fonts; an unreachable stylesheet would block the module script
-  await page.route(/fonts\.g(oogleapis|static)\.com/, route => route.abort())
   await page.goto(popupUrl)
   const boxes = page.locator('.options input[type="checkbox"]')
   await expect(boxes).toHaveCount(3)

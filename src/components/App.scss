@@ -1,47 +1,49 @@
-@use '../assets/styles/variables';
+@use '../assets/styles/variables' as *;
 
 html {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 body {
+  width: 320px;
   margin: 0;
-  background: variables.$grey;
-  color: variables.$green;
-  font-size: 1rem;
-  font-family: CoreSans,Arial,sans-serif;
-}
-
-.wrapper {
-  padding: 1rem;
+  background: $bg;
+  color: $text;
+  font: 1rem/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid $border;
 
-  ::before {
-    display: inline-block;
+  &::before {
     content: '';
-    margin: 0 1rem 0 0;
-    width: 64px;
-    height: 64px;
-    background: transparent url('../assets/images/icon.png') no-repeat center center;
-    background-size: contain;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    background: url('../assets/images/icon.png') center / contain no-repeat;
   }
 }
 
-h1, h2 {
-  font-size: 1.5rem;
-  font-weight: normal;
-  font-family: Oswald,Arial,sans-serif;
-}
-
 h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.07rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
-h2 {
-  font-size: 1.25rem;
+.version {
+  color: $muted;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+main {
+  padding: 0.5rem;
 }
