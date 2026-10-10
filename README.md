@@ -15,6 +15,8 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 ![Extension screenshot](store-assets/extension-screenshot.jpg)
 ### [beatport.com](https://www.beatport.com/) with extension enabled
 ![Page screenshot](store-assets/page-screenshot.jpg)
+### Playlist filter in the add-to-playlist dialog
+![Playlist filter screenshot](store-assets/playlist-filter-screenshot.jpg)
 
 ## Installation
 

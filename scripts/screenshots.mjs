@@ -2,6 +2,8 @@
 // page-screenshot.jpg is the whole page with the popup open, extension-screenshot.jpg a close-up
 // of the popup in the top right corner with part of the page around it. Both 1280x800.
 // Needs `pnpm build` first. Opens a real browser window: Beatport serves its bot challenge to headless ones.
+// playlist-filter-screenshot.jpg is not made here: it needs a logged-in account, so it is captured by hand
+// from a 1280x800 window at 2x (picker open, a filter typed) and scaled down to 1280x800 with sharp.
 import { chromium } from '@playwright/test'
 import sharp from 'sharp'
 import { existsSync, readFileSync } from 'node:fs'
