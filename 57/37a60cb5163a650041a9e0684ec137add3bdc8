@@ -1,0 +1,23 @@
+scripts/screenshots.mjs
+  s_31d2ac64b1239b::t_1d31a8025ed58b 1-34,41-42,45,47-73,76-79,83-87
+  s_31d2ac64b1239b::t_cefe794efe55d9 35-40,74-75,80-82
+  s_31d2ac64b1239b::t_053582144b9978 43-44,46
+package.json
+  s_31d2ac64b1239b::t_1d31a8025ed58b 14-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5737a60cb5163a650041a9e0684ec137add3bdc8",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
