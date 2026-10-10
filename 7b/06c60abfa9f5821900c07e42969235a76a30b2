@@ -1,0 +1,21 @@
+.github/workflows/live-probe.yml
+  s_31d2ac64b1239b::t_2a910c0c82fbe9 1-30
+scripts/live-probe.mjs
+  s_31d2ac64b1239b::t_43c93efd096c9b 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b06c60abfa9f5821900c07e42969235a76a30b2",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "unknown"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
