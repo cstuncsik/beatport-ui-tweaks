@@ -1,0 +1,21 @@
+package.json
+  s_0238d1d57d563b::t_a442322a87697e 3
+src/manifest.json
+  s_0238d1d57d563b::t_52d39d39c1c0f8 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "950f30ff6efe9bc886fb8e0f0ceb41ff5b6ef600",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "unknown"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}

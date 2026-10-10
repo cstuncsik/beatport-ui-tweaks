@@ -1,0 +1,54 @@
+src/manifest.json
+  s_0238d1d57d563b::t_bfe44d0d8dcfc6 35-36,43-44
+  s_0238d1d57d563b::t_f4d472cdc63831 4
+README.md
+  s_0238d1d57d563b::t_c430aaaed78e15 10
+  s_0238d1d57d563b::t_869b8ba6c26fe0 11
+src/store.tsx
+  s_0238d1d57d563b::t_cc50c9af5eb25f 35-40
+  s_0238d1d57d563b::t_3cf597fa6d17fe 41-46
+e2e/fixtures.ts
+  s_0238d1d57d563b::t_919c3c42fc500d 10
+  s_0238d1d57d563b::t_3f718f8ce6a13c 11-12
+src/assets/scripts/mru-playlists.ts
+  s_0238d1d57d563b::t_b48a536aa1c5ba 1-7,10-18,25-40,48-64,66-68,97-106,108-170
+  s_0238d1d57d563b::t_cbb63286dd8cce 8-9
+  s_0238d1d57d563b::t_6ee85fd886ef2d 19-24
+  s_0238d1d57d563b::t_80f87319ddfb64 41-47,65,69-95
+  s_0238d1d57d563b::t_df39ff489fa208 107
+  s_0238d1d57d563b::t_a0644ee4108e32 96
+e2e/extension.spec.ts
+  s_0238d1d57d563b::t_7512fe46a300e8 118-148,162-164,177-186
+  s_0238d1d57d563b::t_c2f483b5c6a431 157
+  s_0238d1d57d563b::t_aea2ccc518943e 149-156,158-161,165-176
+  s_0238d1d57d563b::t_673a5211bdd010 2
+  s_0238d1d57d563b::t_cea29fbebe99a2 187-234
+  s_0238d1d57d563b::t_550772b3df695c 44-54
+  s_0238d1d57d563b::t_e9f09b0227ec8d 257
+package.json
+  s_0238d1d57d563b::t_f4d472cdc63831 3
+src/assets/scripts/utils/dom.ts
+  s_0238d1d57d563b::t_0000df52d6d63e 50-93
+src/assets/scripts/content.ts
+  s_0238d1d57d563b::t_50f176633c3436 97-100
+  s_0238d1d57d563b::t_791d7a7ce70767 4,6
+  s_0238d1d57d563b::t_f80fb94df3003e 144-168,170-201,204-208,210-214,216-228,236,245
+src/assets/styles/content.scss
+  s_0238d1d57d563b::t_5d5f926b5a4812 38-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "be1be09dcf9aad4b878d56760906eac4b9a34073",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
