@@ -1,0 +1,23 @@
+src/manifest.json
+  s_31d2ac64b1239b::t_93bd9fce94b05d 9-19,26-34
+README.md
+  s_31d2ac64b1239b::t_93bd9fce94b05d 9
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_93bd9fce94b05d 57-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ddb7b3294c52d31e7ae4f623522d2de8a2cca8d4",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
