@@ -4,15 +4,27 @@ import { getFeatures } from './assets/scripts/utils/chrome'
 export type Feature = {
   id: string
   label: string
+  description: string
   enabled: boolean
 }
 
 export const defaultFeatures: Feature[] = [
-  { id: 'bp-ui-tweak-remember-last-played', label: 'Remember last played', enabled: true },
-  { id: 'bp-ui-tweak-highlight-played-item', label: 'Highlight played item', enabled: true },
+  {
+    id: 'bp-ui-tweak-remember-last-played',
+    label: 'Remember last played',
+    description: 'Scrolls back to the track you played last when you return to a list',
+    enabled: true
+  },
+  {
+    id: 'bp-ui-tweak-highlight-played-item',
+    label: 'Highlight playing track',
+    description: 'Outlines the row that is playing',
+    enabled: true
+  },
   {
     id: 'bp-ui-tweak-next-prev-play-keyboard',
-    label: 'Play items with keyboard (a -> previous, z -> next)',
+    label: 'Keyboard playback',
+    description: 'A plays the previous track, Z the next one',
     enabled: true
   }
 ]

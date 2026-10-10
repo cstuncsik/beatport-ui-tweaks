@@ -19,9 +19,14 @@ export const getItem = <T>(key: string): Promise<T> =>
     })
   })
 
+// Only the enabled flags come from storage, labels and new features always come from code
 export const getFeatures = async (): Promise<Feature[]> => {
   try {
-    return await getItem(featuresStorageKey)
+    const stored = await getItem<Feature[]>(featuresStorageKey)
+    return defaultFeatures.map(feature => ({
+      ...feature,
+      enabled: stored.find(({ id }) => id === feature.id)?.enabled ?? feature.enabled
+    }))
   } catch (e) {
     console.warn(e)
     return defaultFeatures
