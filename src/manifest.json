@@ -32,6 +32,16 @@
       "js": [
         "assets/scripts/content.ts"
       ]
+    },
+    {
+      "matches": [
+        "https://*.beatport.com/*"
+      ],
+      "js": [
+        "assets/scripts/mru-playlists.ts"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ],
   "icons": {

@@ -32,6 +32,12 @@ export const defaultFeatures: Feature[] = [
     label: 'Show Camelot key',
     description: 'Adds the Camelot code next to the key, for harmonic mixing',
     enabled: true
+  },
+  {
+    id: 'bp-ui-tweak-mru-playlists',
+    label: 'Recently used playlists first',
+    description: 'Playlists you added tracks to lead the add-to-playlist list, latest first',
+    enabled: true
   }
 ]
 
