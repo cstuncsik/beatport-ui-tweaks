@@ -5,7 +5,7 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 - Toggle list row highlighting (on hover and last played item)
 - Toggle saving last played item in local storage and highlighting it on page load and scrolling to it
 - Play next or previous items with keyboard shortcuts (a -> previous, z -> next)
-- Show the Camelot key next to Beatport's key, in Camelot wheel colors, for harmonic mixing
+- Show the Camelot code in Camelot wheel colors, for harmonic mixing: one column at the end of the title cell in lists, next to the key on track pages and in the player
 - Alt+Shift+B opens the popup (change it under chrome://extensions/shortcuts)
 - Playlists you added tracks to come first in the add-to-playlist dialog, latest first
 - A filter box in the add-to-playlist dialog, narrows the list as you type

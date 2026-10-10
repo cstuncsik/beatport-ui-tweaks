@@ -21,11 +21,28 @@
     border-radius: 3px;
     background: hsl(var(--bp-camelot-hue) 80% 55% / 0.22);
     color: hsl(var(--bp-camelot-hue) 90% 72%);
+    min-width: 3em;
     font-size: 0.85em;
     font-weight: 600;
     line-height: 1.5;
     letter-spacing: 0.02em;
+    text-align: center;
     vertical-align: baseline;
+  }
+
+  // list tables: content.ts puts the attribute on the title cell, the chip sits at its right edge,
+  // vertically centered in the row, so the codes of all rows form one column
+  .cell.title[data-bp-camelot] {
+    position: relative;
+    padding-right: 4.5em;
+
+    &::after {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      margin-left: 0;
+      transform: translateY(-50%);
+    }
   }
 
   @for $n from 1 through 12 {

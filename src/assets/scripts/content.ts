@@ -112,14 +112,18 @@ document.addEventListener('keyup', e => {
   }
 })
 
-// Camelot key: every element that shows a musical key gets data-bp-camelot="10A", the chip itself
-// is rendered by content.scss from that attribute, so React never sees an extra DOM node.
+// Camelot key: the element that shows a musical key gets data-bp-camelot="10A", the chip itself is
+// rendered by content.scss from that attribute, so React never sees an extra DOM node. In list
+// tables the attribute goes on the title cell of the row instead, so the codes line up in one column.
 const camelotFeatureClass = 'bp-ui-tweak-camelot-key'
 const camelotAttribute = 'data-bp-camelot'
 
+const chipTarget = (keyElement: Element): Element =>
+  keyElement.matches('.cell.bpm > div') ? (keyElement.closest('.row')?.querySelector('.cell.title') ?? keyElement) : keyElement
+
 const camelotKeyElements = (): Element[] => [
-  // list tables on genre, chart, release and track pages: "86 BPM - D Minor"
-  ...document.querySelectorAll(`.cell.bpm > div:not([${camelotAttribute}])`),
+  // list tables on genre, chart, release and track pages: "86 BPM - D Minor", annotated rows are skipped
+  ...[...document.querySelectorAll('.cell.bpm > div')].filter(div => !chipTarget(div).hasAttribute(camelotAttribute)),
   // track detail meta: <div>Key:</div><span>D Minor</span>
   ...[...document.querySelectorAll('[class*="metaItem"] > *')]
     .filter(label => label.textContent?.trim() === 'Key:')
@@ -131,12 +135,14 @@ const camelotKeyElements = (): Element[] => [
 const annotateCamelotKeys = () => {
   camelotKeyElements().forEach(element => {
     const code = camelotFromKeyText(element.textContent ?? '')
+    const target = chipTarget(element)
     if (code) {
-      if (element.getAttribute(camelotAttribute) !== code) {
-        element.setAttribute(camelotAttribute, code)
+      if (target.getAttribute(camelotAttribute) !== code) {
+        target.setAttribute(camelotAttribute, code)
       }
-    } else if (element.hasAttribute(camelotAttribute)) {
-      element.removeAttribute(camelotAttribute)
+    } else if (target === element) {
+      // a row's genre line has no key either, that must not strip the chip its key line put on the title cell
+      target.removeAttribute(camelotAttribute)
     }
   })
 }
