@@ -25,6 +25,8 @@ type QueryClient = {
 
 // every playlist a list response carried this session: the picker rendered it, so the shape is right
 const seen = new Map<number, Playlist>()
+// each page as the server sent it, so the picker can go back to that order when the feature is off
+const originals = new Map<number, Playlist[]>()
 
 const enabled = () => document.body?.classList.contains(featureClass) ?? false
 
@@ -50,6 +52,8 @@ const rewriteList = (url: string, text: string): string => {
   if (!Array.isArray(data.results)) {
     return text
   }
+  const page = Number(new URL(url, location.origin).searchParams.get('page') ?? 1)
+  originals.set(page, data.results)
   data.results.forEach(playlist => seen.set(playlist.id, playlist))
   if (!enabled()) {
     return text
@@ -62,7 +66,7 @@ const rewriteList = (url: string, text: string): string => {
     }
   })
   save(state)
-  data.results = arrange(data.results, (new URL(url, location.origin).searchParams.get('page') ?? '1') === '1', state)
+  data.results = arrange(data.results, page === 1, state)
   return JSON.stringify(data)
 }
 
@@ -85,14 +89,22 @@ const queryClient = (): QueryClient | null => {
   return null
 }
 
-// After an add Beatport refetches every loaded page of the picker one by one and shows the old
-// order until all of them are back, so the cached pages get the new order right away.
-const refreshPickerCache = (state: State) =>
+// Rewrites the picker's cached pages from the server copies: in history order while the feature is
+// on, the server's own order when it is off. After an add Beatport refetches every loaded page one
+// by one and would show the old order until all of them are back, this makes the change immediate.
+const refreshPickerCache = () => {
+  const state = load()
+  const on = enabled()
   queryClient()?.setQueryData(['my-playlists-infinite'], data =>
     data && {
       ...data,
-      pages: data.pages.map((page, index) => ({ ...page, results: arrange(page.results ?? [], index === 0, state) }))
+      pages: data.pages.map((page, index) => {
+        const number = Number(data.pageParams?.[index] ?? index + 1)
+        const results = originals.get(number) ?? page.results ?? []
+        return { ...page, results: on ? arrange(results, number === 1, state) : results }
+      })
     })
+}
 
 const markUsed = (id: number, addedTracks: number) => {
   const state = load()
@@ -104,7 +116,7 @@ const markUsed = (id: number, addedTracks: number) => {
   state.ids = [id, ...state.ids.filter(other => other !== id)]
   state.cache[id] = { ...playlist, track_count: playlist.track_count + addedTracks }
   save(state)
-  refreshPickerCache(state)
+  refreshPickerCache()
 }
 
 // ponytail: deleting on another device leaves a ghost entry, adding to it fails until it is deleted here too
@@ -167,4 +179,22 @@ XMLHttpRequest.prototype.send = function (this: Patched, body?: Document | XMLHt
     })
   }
   send.call(this, body)
+}
+
+// the popup toggle lands here as the body class content.ts flips, the picker follows at once
+const watchToggle = () => {
+  let was = enabled()
+  new MutationObserver(() => {
+    const now = enabled()
+    if (now !== was) {
+      was = now
+      refreshPickerCache()
+    }
+  }).observe(document.body, { attributes: true, attributeFilter: ['class'] })
+}
+
+if (document.body) {
+  watchToggle()
+} else {
+  document.addEventListener('DOMContentLoaded', watchToggle)
 }

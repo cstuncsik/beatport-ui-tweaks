@@ -18,11 +18,15 @@ const rowActiveClassOriginal = 'current'
 const playedItemBaseSelector = '.cell.title a'
 const playOrReplayButtonSelector = 'button[data-testid="play-button"]'
 
-let lastPlayed: HTMLElement | null = null
+const rememberFeatureClass = 'bp-ui-tweak-remember-last-played'
+const highlightFeatureClass = 'bp-ui-tweak-highlight-played-item'
+
 let scrolledToLastPlayed = false
+// the row marked on load; Beatport owns its "current" class again as soon as something is played
+let markedRow: Element | null = null
 
 const initializeActiveObserver = () => {
-  if(body.classList.contains('bp-ui-tweak-highlight-played-item')) {
+  if(body.classList.contains(highlightFeatureClass)) {
     const activeObserver = new MutationObserver(() => {
       document.querySelector(`.${rowActiveClass}`)?.classList.remove(rowActiveClass)
 
@@ -36,31 +40,54 @@ const initializeActiveObserver = () => {
   }
 }
 
-const mutationObserver = new MutationObserver(async () => {
-  if(
-    body.classList.contains('bp-ui-tweak-remember-last-played') &&
-    !scrolledToLastPlayed
-  ) {
-    const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
-    const lastPlayedReleases = await getLastPlayedReleases()
-    const { element } = await waitUntilElementIsVisible(
-      `${ playedItemBaseSelector }[href$="/${ lastPlayedReleases[genreOrArtist]?.[type] }"]`
-    )
-    if (element) {
-      lastPlayed = element
-      const { top } = getOffset(lastPlayed, body)
-      lastPlayed.closest(`.${ rowClass }`)?.classList.add(rowActiveClass, rowActiveClassOriginal)
-      if (top && !scrolledToLastPlayed) {
-        window.scrollTo({
-          top: top - window.innerHeight / 2,
-          behavior: 'smooth'
-        })
-        scrolledToLastPlayed = true
-        mutationObserver.disconnect()
-      }
+const scrollToLastPlayed = async () => {
+  if (!body.classList.contains(rememberFeatureClass) || scrolledToLastPlayed) {
+    return
+  }
+  const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
+  const lastPlayedReleases = await getLastPlayedReleases()
+  const { element } = await waitUntilElementIsVisible(
+    `${ playedItemBaseSelector }[href$="/${ lastPlayedReleases[genreOrArtist]?.[type] }"]`
+  )
+  if (element) {
+    const { top } = getOffset(element, body)
+    markedRow = element.closest(`.${ rowClass }`)
+    markedRow?.classList.add(rowActiveClass, rowActiveClassOriginal)
+    if (top && !scrolledToLastPlayed) {
+      window.scrollTo({
+        top: top - window.innerHeight / 2,
+        behavior: 'smooth'
+      })
+      scrolledToLastPlayed = true
+      mutationObserver.disconnect()
     }
   }
-})
+}
+
+const mutationObserver = new MutationObserver(scrollToLastPlayed)
+
+// Switching a feature off in the popup puts the page back the way Beatport rendered it, switching
+// it on applies the feature again right away. Camelot and the playlist filter do it through their
+// observers, the playlist order through mru-playlists.ts watching the body class.
+const featureToggles: Record<string, (enabled: boolean) => void> = {
+  [rememberFeatureClass]: enabled => {
+    if (enabled) {
+      scrolledToLastPlayed = false
+      mutationObserver.observe(body, { childList: true, subtree: true })
+      scrollToLastPlayed()
+    } else {
+      markedRow?.classList.remove(rowActiveClass, rowActiveClassOriginal)
+      markedRow = null
+    }
+  },
+  [highlightFeatureClass]: enabled => {
+    document.querySelectorAll(`.${rowActiveClass}`).forEach(row => row.classList.remove(rowActiveClass))
+    if (enabled) {
+      document.querySelector(`.${rowClass}.${rowActiveClassOriginal}`)?.classList.add(rowActiveClass)
+      initializeActiveObserver()
+    }
+  }
+}
 
 body.classList.add('bp-ui-tweaks-extension')
 
@@ -68,7 +95,7 @@ mutationObserver.observe(body, { childList: true, subtree: true })
 initializeActiveObserver()
 
 body.addEventListener('click', async e => {
-  if(body.classList.contains('bp-ui-tweak-remember-last-played')) {
+  if(body.classList.contains(rememberFeatureClass)) {
     const target = e.target as HTMLElement
     const targetPlayBtn = target.matches(playOrReplayButtonSelector) ? target : target.closest(playOrReplayButtonSelector)
     if (targetPlayBtn) {
@@ -76,6 +103,7 @@ body.addEventListener('click', async e => {
       const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
       scrolledToLastPlayed = true
+      markedRow = null
       const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
       const lastPlayedReleases = await getLastPlayedReleases()
       await chrome.storage.sync.set({
@@ -147,7 +175,10 @@ const annotateCamelotKeys = () => {
   })
 }
 
-const syncCamelotObserver = observeWhileEnabled(camelotFeatureClass, annotateCamelotKeys)
+const stripCamelotKeys = () =>
+  document.querySelectorAll(`[${camelotAttribute}]`).forEach(element => element.removeAttribute(camelotAttribute))
+
+const syncCamelotObserver = observeWhileEnabled(camelotFeatureClass, annotateCamelotKeys, stripCamelotKeys)
 
 // Playlist filter: a search box in the header of the "add to playlist" picker, rows whose name does
 // not contain every typed word get a hidden class. Beatport only has the first 50 playlists loaded,
@@ -248,6 +279,7 @@ chrome.runtime.onMessage.addListener(request => {
     feature: { id, enabled }
   } = request
   toggleBodyFeatureClassNames(id, enabled)
+  featureToggles[id]?.(enabled)
   syncFeatureObservers()
 })
 
