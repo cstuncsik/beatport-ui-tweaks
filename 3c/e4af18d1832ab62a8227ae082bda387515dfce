@@ -1,0 +1,25 @@
+package.json
+  s_0238d1d57d563b::t_1544d501b883be 3
+src/manifest.json
+  s_0238d1d57d563b::t_507dba2500bde8 4
+e2e/extension.spec.ts
+  s_0238d1d57d563b::t_1885e3793aeb86 196-199
+src/assets/scripts/content.ts
+  s_0238d1d57d563b::t_378ded0df5bb31 218-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3ce4af18d1832ab62a8227ae082bda387515dfce",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "unknown"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
