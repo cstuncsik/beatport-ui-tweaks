@@ -1,0 +1,19 @@
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_c458dfa89c6993 57-58,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c10187ef9cc6687f04e333a97d60e6795b900638",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "unknown"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
