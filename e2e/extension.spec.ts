@@ -104,6 +104,50 @@ test('z and a keys play the next and previous track', async ({ page }) => {
   await expect(rows(page).nth(1)).toHaveClass(/current/)
 })
 
+test('recently used playlists lead the add-to-playlist list', async ({ page }) => {
+  // Beatport's picker pages through /v4/my/playlists/ with axios over XMLHttpRequest, which the
+  // extension patches in the page's world. Same origin as the stub page here, so no CORS in the way.
+  const playlist = (id: number) => ({ id, name: `Playlist ${id}`, track_count: 1 })
+  const pages: Record<string, unknown> = {
+    '1': { page: '1/2', count: 3, results: [playlist(1), playlist(2)] },
+    '2': { page: '2/2', count: 3, results: [playlist(3)] }
+  }
+  await visitTrackList(page)
+  await page.route('https://www.beatport.com/v4/**', route => {
+    const url = new URL(route.request().url())
+    return route.fulfill({ json: url.pathname === '/v4/my/playlists/' ? pages[url.searchParams.get('page') ?? '1'] : {} })
+  })
+  await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-mru-playlists/)
+  const xhr = (method: string, path: string, body?: string) =>
+    page.evaluate(
+      ([method, path, body]) =>
+        new Promise<unknown>(resolve => {
+          const request = new XMLHttpRequest()
+          request.open(method, `/v4/my/playlists/${path}`)
+          request.onload = () => resolve(JSON.parse(request.responseText))
+          request.send(body)
+        }),
+      [method, path, body] as [string, string, string | undefined]
+    )
+  const list = async (pageNumber: number) =>
+    ((await xhr('GET', `?page=${pageNumber}&per_page=50`)) as { results: ReturnType<typeof playlist>[] }).results
+  const ids = async (pageNumber: number) => (await list(pageNumber)).map(({ id }) => id)
+
+  expect(await ids(1)).toEqual([1, 2])
+  expect(await ids(2)).toEqual([3])
+  await xhr('POST', '3/tracks/bulk/', JSON.stringify({ track_ids: [10, 11] }))
+  expect(await list(1), 'used playlist moves to the top with its count bumped').toEqual([{ ...playlist(3), track_count: 3 }, playlist(1), playlist(2)])
+  expect(await ids(2), 'and leaves its own page').toEqual([])
+  await xhr('POST', '2/tracks/bulk/', JSON.stringify({ track_ids: [12] }))
+  expect(await ids(1), 'latest use first, the previous top is second').toEqual([2, 3, 1])
+
+  await page.reload()
+  await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-mru-playlists/)
+  expect(await ids(1), 'survives a reload').toEqual([2, 3, 1])
+  await xhr('DELETE', '3/')
+  expect(await ids(1), 'a deleted playlist is forgotten').toEqual([2, 1])
+})
+
 test('shows wheel-colored Camelot codes next to every key, toggle hides them', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
