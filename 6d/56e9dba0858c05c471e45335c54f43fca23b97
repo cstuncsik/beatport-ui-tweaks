@@ -1,0 +1,19 @@
+.github/workflows/live-check.yml
+  s_5083c5b6d9d702::t_32a1e24fc14b7e 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6d56e9dba0858c05c471e45335c54f43fca23b97",
+  "prompts": {},
+  "sessions": {
+    "s_5083c5b6d9d702": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d2d2989-cff2-493e-9eca-f31fbbc1e2d5",
+        "model": "unknown"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
