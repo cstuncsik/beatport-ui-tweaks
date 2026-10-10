@@ -1,5 +1,5 @@
 import { test, expect, featureIds } from './fixtures'
-import type { Page } from '@playwright/test'
+import type { Page, Worker } from '@playwright/test'
 
 const siteUrl = 'https://www.beatport.com/genre/techno/6/top-100'
 
@@ -40,6 +40,17 @@ const renderRows = (page: Page, ids: string[]) =>
   }, ids.map((id, i) => trackRow(id, i === 0, keys[i % keys.length])).join(''))
 
 const rows = (page: Page) => page.locator('.row')
+
+// the popup sends this exact message when a toggle flips; no "tabs" permission, so tab urls are
+// hidden: broadcast, tabs without the content script reject
+const toggleFeature = (worker: Worker, id: string, enabled: boolean) =>
+  worker.evaluate(
+    async ({ id, enabled }) => {
+      const tabs = await chrome.tabs.query({})
+      await Promise.allSettled(tabs.map(tab => chrome.tabs.sendMessage(tab.id!, { feature: { id, enabled } })))
+    },
+    { id, enabled }
+  )
 
 test('popup lists the default features and persists a toggle', async ({ page, popupUrl }) => {
   await page.goto(popupUrl)
@@ -173,6 +184,54 @@ test('recently used playlists lead the add-to-playlist list', async ({ page }) =
   expect(await ids(1), 'a deleted playlist is forgotten').toEqual([2, 1])
 })
 
+test('filter box in the add-to-playlist picker narrows the list as you type', async ({ page, worker }) => {
+  await visitTrackList(page)
+  await renderRows(page, ['111', '222'])
+  // Stand-in for Beatport's picker: header with the create button, and a scrollable list that
+  // appends the next page when scrolled to its very bottom, like the real infinite scroll does.
+  const row = (name: string) => `<div class="item-row"><span class="name">${name}</span></div>`
+  await page.evaluate(
+    ([firstPage, secondPage]) => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `<div class="AddToPlaylistModal_wrapper__x">
+          <div class="PlaylistTable-style__TableHeader-x"><button type="button">Create playlist</button></div>
+          <div class="scrollable" style="height: 40px; overflow-y: auto">${firstPage}</div>
+        </div>`
+      )
+      const list = document.querySelector<HTMLElement>('.scrollable')!
+      list.addEventListener('scroll', () => {
+        if (list.scrollTop + list.clientHeight === list.scrollHeight && !list.dataset.loaded) {
+          list.dataset.loaded = '1'
+          setTimeout(() => list.insertAdjacentHTML('beforeend', secondPage), 100)
+        }
+      })
+    },
+    [row('DnB dark club') + row('Techno peak') + row('Deep house'), row('Dark ambient') + row('Liquid DnB')]
+  )
+  const input = page.locator('.bp-ui-tweak-playlist-filter__input')
+  const shown = page.locator('.item-row:not(.bp-ui-tweak-playlist-filter__hidden) .name')
+  await expect(input, 'box is in the header, ready to type').toBeFocused()
+  await expect(shown).toHaveText(['DnB dark club', 'Techno peak', 'Deep house'])
+
+  await input.fill('dark')
+  await expect(shown, 'matches from the page loaded while typing too').toHaveText(['DnB dark club', 'Dark ambient'])
+  await input.fill('dnb dark')
+  await expect(shown, 'every word has to match').toHaveText(['DnB dark club'])
+  await input.press('z')
+  await input.press('a')
+  await expect(rows(page).nth(0), 'typing does not drive the player').toHaveClass(/current/)
+  await input.fill('')
+  await expect(shown).toHaveCount(5)
+
+  await input.fill('ambient')
+  await toggleFeature(worker, 'bp-ui-tweak-playlist-filter', false)
+  await expect(input).toHaveCount(0)
+  await expect(shown, 'off: box gone, nothing hidden').toHaveCount(5)
+  await toggleFeature(worker, 'bp-ui-tweak-playlist-filter', true)
+  await expect(input).toBeFocused()
+})
+
 test('shows wheel-colored Camelot codes next to every key, toggle hides them', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
@@ -195,13 +254,7 @@ test('shows wheel-colored Camelot codes next to every key, toggle hides them', a
   await page.locator('#bp-player p').nth(1).evaluate(p => { p.textContent = 'Eb Major' })
   await expect(page.locator('#bp-player p').nth(1)).toHaveAttribute('data-bp-camelot', '5B')
 
-  // the popup sends this exact message when the toggle flips
-  const toggle = (enabled: boolean) =>
-    worker.evaluate(async enabled => {
-      // no "tabs" permission, so tab urls are hidden: broadcast, tabs without the content script reject
-      const tabs = await chrome.tabs.query({})
-      await Promise.allSettled(tabs.map(tab => chrome.tabs.sendMessage(tab.id!, { feature: { id: 'bp-ui-tweak-camelot-key', enabled } })))
-    }, enabled)
+  const toggle = (enabled: boolean) => toggleFeature(worker, 'bp-ui-tweak-camelot-key', enabled)
   await toggle(false)
   await expect(page.locator('body')).not.toHaveClass(/bp-ui-tweak-camelot-key/)
   expect(await chip(keyCell(0))).toEqual(['none', ''])

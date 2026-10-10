@@ -47,6 +47,50 @@ export const waitUntilElementIsVisible = (
   })
 }
 
+export const waitUntil = (condition: () => boolean, timeout = 2000): Promise<boolean> =>
+  new Promise(resolve => {
+    const started = Date.now()
+    const check = () => {
+      if (condition()) {
+        resolve(true)
+      } else if (Date.now() - started > timeout) {
+        resolve(false)
+      } else {
+        setTimeout(check, 100)
+      }
+    }
+    check()
+  })
+
+// Returns a sync function: while the feature class is on the body, `pass` runs after DOM changes,
+// once per frame; when the class goes away the observer stops and `cleanup` runs. Attribute changes
+// are not observed, so a pass that only writes attributes or classes never re-triggers itself.
+export const observeWhileEnabled = (featureClass: string, pass: () => void, cleanup?: () => void) => {
+  let observer: MutationObserver | null = null
+  let frame = 0
+  const schedule = () => {
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        pass()
+      })
+    }
+  }
+  return () => {
+    const enabled = document.body.classList.contains(featureClass)
+    if (enabled && !observer) {
+      observer = new MutationObserver(schedule)
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+      schedule()
+    }
+    if (!enabled && observer) {
+      observer.disconnect()
+      observer = null
+      cleanup?.()
+    }
+  }
+}
+
 export const toggleBodyFeatureClassNames = (id: string, enabled: boolean) => {
   const body = document.body
   if (enabled) {

@@ -1,7 +1,9 @@
 import {
   findSiblingElementsByClasses,
   getOffset,
+  observeWhileEnabled,
   toggleBodyFeatureClassNames,
+  waitUntil,
   waitUntilElementIsVisible
 } from './utils/dom'
 import { Feature } from '../../store'
@@ -92,6 +94,10 @@ body.addEventListener('click', async e => {
 
 document.addEventListener('keyup', e => {
   const { key } = e
+  // typing in a text field, Beatport's search or our playlist filter, must not drive the player
+  if ((e.target as Element | null)?.closest('input, textarea, [contenteditable]')) {
+    return
+  }
   if (body.classList.contains('bp-ui-tweak-next-prev-play-keyboard')) {
     const currentRow = document.querySelector(`.${rowClass}.${rowActiveClassOriginal}`)
     const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow, [rowClass])
@@ -110,8 +116,6 @@ document.addEventListener('keyup', e => {
 // is rendered by content.scss from that attribute, so React never sees an extra DOM node.
 const camelotFeatureClass = 'bp-ui-tweak-camelot-key'
 const camelotAttribute = 'data-bp-camelot'
-let camelotObserver: MutationObserver | null = null
-let camelotFrame = 0
 
 const camelotKeyElements = (): Element[] => [
   // list tables on genre, chart, release and track pages: "86 BPM - D Minor"
@@ -137,27 +141,91 @@ const annotateCamelotKeys = () => {
   })
 }
 
-const scheduleCamelotPass = () => {
-  if (!camelotFrame) {
-    camelotFrame = requestAnimationFrame(() => {
-      camelotFrame = 0
-      annotateCamelotKeys()
-    })
+const syncCamelotObserver = observeWhileEnabled(camelotFeatureClass, annotateCamelotKeys)
+
+// Playlist filter: a search box in the header of the "add to playlist" picker, rows whose name does
+// not contain every typed word get a hidden class. Beatport only has the first 50 playlists loaded,
+// the rest come on scroll, so typing also pulls in the remaining pages through the picker's own
+// scroll handler, which fires when the list sits exactly at its bottom.
+const filterFeatureClass = 'bp-ui-tweak-playlist-filter'
+const filterInputClass = 'bp-ui-tweak-playlist-filter__input'
+const filterHiddenClass = 'bp-ui-tweak-playlist-filter__hidden'
+const pickerSelector = '[class*="AddToPlaylistModal_wrapper"]'
+let loadingPages = false
+
+const pickerRows = (picker: Element) => [...picker.querySelectorAll('.item-row')]
+
+const applyFilter = (picker: Element, input: HTMLInputElement) => {
+  const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean)
+  pickerRows(picker).forEach(row => {
+    const name = row.querySelector('.name')?.textContent?.toLowerCase() ?? ''
+    row.classList.toggle(filterHiddenClass, !terms.every(term => name.includes(term)))
+  })
+}
+
+const loadRemainingPages = async (picker: Element) => {
+  if (loadingPages) {
+    return
+  }
+  loadingPages = true
+  try {
+    let scroller = picker.querySelector<HTMLElement>('.scrollable')
+    while (scroller?.isConnected) {
+      const before = pickerRows(picker).length
+      const { scrollTop } = scroller
+      // the handler reads the geometry during dispatch, restoring the position right after keeps the view still
+      scroller.scrollTop = scroller.scrollHeight
+      scroller.dispatchEvent(new Event('scroll'))
+      scroller.scrollTop = scrollTop
+      if (!(await waitUntil(() => pickerRows(picker).length > before, 2500))) {
+        break
+      }
+      scroller = picker.querySelector<HTMLElement>('.scrollable')
+    }
+  } finally {
+    loadingPages = false
   }
 }
 
-const syncCamelotObserver = () => {
-  const enabled = body.classList.contains(camelotFeatureClass)
-  if (enabled && !camelotObserver) {
-    camelotObserver = new MutationObserver(scheduleCamelotPass)
-    // attribute changes are not observed, so our own writes never re-trigger the pass
-    camelotObserver.observe(body, { childList: true, subtree: true, characterData: true })
-    scheduleCamelotPass()
+const createFilterInput = (picker: Element) => {
+  const input = document.createElement('input')
+  input.type = 'search'
+  input.className = filterInputClass
+  input.placeholder = 'Filter playlists'
+  input.addEventListener('input', () => {
+    applyFilter(picker, input)
+    if (input.value.trim()) {
+      loadRemainingPages(picker)
+    }
+  })
+  return input
+}
+
+const ensureFilterInput = () => {
+  const picker = document.querySelector(pickerSelector)
+  const header = picker?.querySelector('[class*="TableHeader"]')
+  if (!picker || !header) {
+    return // picker closed, or on its create form: React drops the header and our box with it
   }
-  if (!enabled && camelotObserver) {
-    camelotObserver.disconnect()
-    camelotObserver = null
+  let input = header.querySelector<HTMLInputElement>(`.${filterInputClass}`)
+  if (!input) {
+    input = createFilterInput(picker)
+    header.prepend(input)
+    input.focus()
   }
+  applyFilter(picker, input)
+}
+
+const removeFilterInput = () => {
+  document.querySelectorAll(`.${filterInputClass}`).forEach(input => input.remove())
+  document.querySelectorAll(`.${filterHiddenClass}`).forEach(row => row.classList.remove(filterHiddenClass))
+}
+
+const syncPlaylistFilter = observeWhileEnabled(filterFeatureClass, ensureFilterInput, removeFilterInput)
+
+const syncFeatureObservers = () => {
+  syncCamelotObserver()
+  syncPlaylistFilter()
 }
 
 chrome.runtime.onMessage.addListener(request => {
@@ -165,7 +233,7 @@ chrome.runtime.onMessage.addListener(request => {
     feature: { id, enabled }
   } = request
   toggleBodyFeatureClassNames(id, enabled)
-  syncCamelotObserver()
+  syncFeatureObservers()
 })
 
 chrome.runtime.sendMessage({ action: 'get-beatport-ui-features' }, response => {
@@ -174,5 +242,5 @@ chrome.runtime.sendMessage({ action: 'get-beatport-ui-features' }, response => {
     const { id, enabled } = feature
     toggleBodyFeatureClassNames(id, enabled)
   })
-  syncCamelotObserver()
+  syncFeatureObservers()
 })

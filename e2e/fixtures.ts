@@ -8,7 +8,8 @@ export const featureIds = [
   'bp-ui-tweak-highlight-played-item',
   'bp-ui-tweak-next-prev-play-keyboard',
   'bp-ui-tweak-camelot-key',
-  'bp-ui-tweak-mru-playlists'
+  'bp-ui-tweak-mru-playlists',
+  'bp-ui-tweak-playlist-filter'
 ]
 
 export type Options = { headlessMode: boolean }
