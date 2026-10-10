@@ -8,6 +8,7 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 - Show the Camelot key next to Beatport's key, in Camelot wheel colors, for harmonic mixing
 - Alt+Shift+B opens the popup (change it under chrome://extensions/shortcuts)
 - Playlists you added tracks to come first in the add-to-playlist dialog, latest first
+- A filter box in the add-to-playlist dialog, narrows the list as you type
 
 ## Screenshots
 ### Extension

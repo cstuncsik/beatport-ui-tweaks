@@ -38,6 +38,12 @@ export const defaultFeatures: Feature[] = [
     label: 'Recently used playlists first',
     description: 'Playlists you added tracks to lead the add-to-playlist list, latest first',
     enabled: true
+  },
+  {
+    id: 'bp-ui-tweak-playlist-filter',
+    label: 'Playlist filter box',
+    description: 'A search box in the add-to-playlist dialog, narrows the list as you type',
+    enabled: true
   }
 ]
 

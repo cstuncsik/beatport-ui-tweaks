@@ -35,3 +35,34 @@
     }
   }
 }
+
+// Playlist filter box, content.ts puts it in the header of the add-to-playlist picker next to the
+// "Create playlist" button, and marks the rows that do not match what was typed.
+.bp-ui-tweaks-extension.bp-ui-tweak-playlist-filter {
+  .bp-ui-tweak-playlist-filter__input {
+    flex: 0 1 320px;
+    margin-right: auto;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid #343434;
+    border-radius: 4px;
+    background: #343434;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    appearance: none;
+
+    &:focus {
+      outline: none;
+      border-color: variables.$green;
+    }
+
+    &::placeholder {
+      color: #9c9c9c;
+    }
+  }
+
+  .bp-ui-tweak-playlist-filter__hidden {
+    display: none !important;
+  }
+}
