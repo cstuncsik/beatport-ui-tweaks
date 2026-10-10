@@ -16,6 +16,12 @@ type Playlist = { id: number; track_count: number }
 type ListResponse = { page?: string; results?: Playlist[] }
 type State = { ids: number[]; cache: Record<number, Playlist> }
 type Patched = XMLHttpRequest & { bpMethod?: string; bpUrl?: string }
+type Fiber = { memoizedProps?: { client?: unknown }; return?: Fiber | null }
+type InfiniteData = { pages: ListResponse[]; pageParams: unknown[] }
+type QueryClient = {
+  getQueryCache: () => unknown
+  setQueryData: (key: unknown[], updater: (data?: InfiniteData) => InfiniteData | undefined) => unknown
+}
 
 // every playlist a list response carried this session: the picker rendered it, so the shape is right
 const seen = new Map<number, Playlist>()
@@ -31,6 +37,13 @@ const load = (): State => {
 }
 
 const save = (state: State) => localStorage.setItem(storageKey, JSON.stringify(state))
+
+// recently used playlists lead the first page, latest use first, and leave the page they belong to
+const arrange = (results: Playlist[], firstPage: boolean, state: State): Playlist[] => {
+  const recent = new Set(state.ids)
+  const rest = results.filter(playlist => !recent.has(playlist.id))
+  return firstPage ? [...state.ids.map(id => state.cache[id]).filter(Boolean), ...rest] : rest
+}
 
 const rewriteList = (url: string, text: string): string => {
   const data: ListResponse = JSON.parse(text)
@@ -49,13 +62,37 @@ const rewriteList = (url: string, text: string): string => {
     }
   })
   save(state)
-  const recent = new Set(state.ids)
-  data.results = data.results.filter(playlist => !recent.has(playlist.id))
-  if ((new URL(url, location.origin).searchParams.get('page') ?? '1') === '1') {
-    data.results.unshift(...state.ids.map(id => state.cache[id]).filter(Boolean))
-  }
+  data.results = arrange(data.results, (new URL(url, location.origin).searchParams.get('page') ?? '1') === '1', state)
   return JSON.stringify(data)
 }
+
+// Beatport's React Query client, reached through React's fiber tree from a node inside the app.
+// ponytail: React internals, if they change this returns null and the picker catches up when
+// Beatport's own refetch after the add has finished (several seconds with many pages loaded)
+const queryClient = (): QueryClient | null => {
+  for (const selector of ['[class*="AddToPlaylistModal_wrapper"]', '#bp-player', '.row']) {
+    const node = document.querySelector(selector) as unknown as Record<string, Fiber | undefined> | null
+    const key = node && Object.keys(node).find(name => name.startsWith('__reactFiber$'))
+    let fiber = key ? node[key] : null
+    while (fiber) {
+      const client = fiber.memoizedProps?.client as Partial<QueryClient> | undefined
+      if (typeof client?.setQueryData === 'function' && typeof client.getQueryCache === 'function') {
+        return client as QueryClient
+      }
+      fiber = fiber.return
+    }
+  }
+  return null
+}
+
+// After an add Beatport refetches every loaded page of the picker one by one and shows the old
+// order until all of them are back, so the cached pages get the new order right away.
+const refreshPickerCache = (state: State) =>
+  queryClient()?.setQueryData(['my-playlists-infinite'], data =>
+    data && {
+      ...data,
+      pages: data.pages.map((page, index) => ({ ...page, results: arrange(page.results ?? [], index === 0, state) }))
+    })
 
 const markUsed = (id: number, addedTracks: number) => {
   const state = load()
@@ -67,6 +104,7 @@ const markUsed = (id: number, addedTracks: number) => {
   state.ids = [id, ...state.ids.filter(other => other !== id)]
   state.cache[id] = { ...playlist, track_count: playlist.track_count + addedTracks }
   save(state)
+  refreshPickerCache(state)
 }
 
 // ponytail: deleting on another device leaves a ghost entry, adding to it fails until it is deleted here too

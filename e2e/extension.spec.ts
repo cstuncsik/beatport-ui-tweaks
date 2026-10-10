@@ -135,9 +135,34 @@ test('recently used playlists lead the add-to-playlist list', async ({ page }) =
 
   expect(await ids(1)).toEqual([1, 2])
   expect(await ids(2)).toEqual([3])
+  // Beatport's React Query client as the extension finds it: through the fiber chain of a page node
+  await page.evaluate(
+    pages => {
+      const calls: unknown[] = []
+      const client = {
+        getQueryCache: () => ({}),
+        setQueryData: (key: unknown, updater: (data: unknown) => unknown) => calls.push([key, updater({ pages, pageParams: [1, 2] })])
+      }
+      Object.assign(document.querySelector('#bp-player')!, { __reactFiber$test: { memoizedProps: {}, return: { memoizedProps: { client }, return: null } } })
+      Object.assign(window, { __queryCalls: calls })
+    },
+    [pages['1'], pages['2']]
+  )
   await xhr('POST', '3/tracks/bulk/', JSON.stringify({ track_ids: [10, 11] }))
   expect(await list(1), 'used playlist moves to the top with its count bumped').toEqual([{ ...playlist(3), track_count: 3 }, playlist(1), playlist(2)])
   expect(await ids(2), 'and leaves its own page').toEqual([])
+  expect(await page.evaluate(() => (window as unknown as { __queryCalls: unknown[] }).__queryCalls), 'cached pages get the new order at once').toEqual([
+    [
+      ['my-playlists-infinite'],
+      {
+        pages: [
+          { page: '1/2', count: 3, results: [{ ...playlist(3), track_count: 3 }, playlist(1), playlist(2)] },
+          { page: '2/2', count: 3, results: [] }
+        ],
+        pageParams: [1, 2]
+      }
+    ]
+  ])
   await xhr('POST', '2/tracks/bulk/', JSON.stringify({ track_ids: [12] }))
   expect(await ids(1), 'latest use first, the previous top is second').toEqual([2, 3, 1])
 
