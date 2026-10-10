@@ -9,8 +9,9 @@
     "dev": "parcel watch src/manifest.json --host localhost --config @parcel/config-webextension",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "test": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "test": "playwright test --project default",
+    "typecheck": "tsc --noEmit",
+    "test:live": "playwright test --project live"
   },
   "author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>",
   "repository": "github:cstuncsik/beatport-ui-tweaks",

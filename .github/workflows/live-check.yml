@@ -1,0 +1,47 @@
+name: Live Beatport check
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Live check, headed under Xvfb (Cloudflare blocks headless)
+        run: xvfb-run --auto-servernum pnpm test:live
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: live-check-traces
+          path: test-results/
+          retention-days: 14
+      - name: Open or update the tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create live-check --description "Daily live check against beatport.com" --color d73a4a --force
+          body="The daily live check against beatport.com failed, Beatport's markup may have changed. Run: $RUN_URL"
+          number=$(gh issue list --label live-check --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "Still failing. $body"
+          else
+            gh issue create --title "Live Beatport check failed" --label live-check --body "$body"
+          fi
