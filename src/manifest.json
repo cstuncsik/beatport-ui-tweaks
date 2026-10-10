@@ -6,16 +6,32 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["activeTab", "storage"],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+B"
+      }
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
   "background": {
     "service_worker": "assets/scripts/background.ts",
     "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["https://*.beatport.com/*"],
-      "css": ["assets/styles/content.scss"],
-      "js": ["assets/scripts/content.ts"]
+      "matches": [
+        "https://*.beatport.com/*"
+      ],
+      "css": [
+        "assets/styles/content.scss"
+      ],
+      "js": [
+        "assets/scripts/content.ts"
+      ]
     }
   ],
   "icons": {

@@ -54,6 +54,13 @@ test('popup lists the default features and persists a toggle', async ({ page, po
   await expect(boxes.nth(1)).toBeChecked()
 })
 
+test('Alt+Shift+B is registered as the popup shortcut', async ({ worker }) => {
+  const commands = await worker.evaluate(() => chrome.commands.getAll())
+  const open = commands.find(command => command.name === '_execute_action')
+  expect(open, 'the _execute_action command from the manifest').toBeTruthy()
+  expect(open?.shortcut, 'Chrome accepted the suggested key').not.toBe('')
+})
+
 test('content script initializes and receives the enabled features', async ({ page }) => {
   await visitTrackList(page)
   await expect(page.locator('body')).toHaveClass(/bp-ui-tweaks-extension/)
