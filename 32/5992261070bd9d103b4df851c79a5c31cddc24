@@ -1,0 +1,39 @@
+e2e/fixtures.ts
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 9-10
+src/store.tsx
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 29-34
+src/assets/styles/content.scss
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 10-37
+README.md
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 8
+e2e/live.spec.ts
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 44-48
+e2e/extension.spec.ts
+  s_31d2ac64b1239b::t_3a2e4695a1e323 47,125-127
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 10-12,15,24-31,40,100-124,128-136
+  s_31d2ac64b1239b::t_152f5fd9b04919 137
+src/assets/scripts/utils/musical.ts
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 12-33
+src/assets/scripts/content.ts
+  s_31d2ac64b1239b::t_3b7da0b01d33fc 10,109-162,168,177
+package.json
+  s_31d2ac64b1239b::t_012f99c4d471b2 3
+src/manifest.json
+  s_31d2ac64b1239b::t_913463a6385688 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "325992261070bd9d103b4df851c79a5c31cddc24",
+  "prompts": {},
+  "sessions": {
+    "s_31d2ac64b1239b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "747e862a-d833-42f8-8aa7-ac8382613243",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
