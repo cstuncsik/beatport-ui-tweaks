@@ -19,18 +19,39 @@ const trackRow = (id: string, current: boolean, key: string) => `
     </button>
   </div>`
 
-const visitTrackList = async (page: Page) => {
+// Beatport renders the list's API query and an anonymous API token into __NEXT_DATA__, and a pager
+// row above and below the list
+const nextData = JSON.stringify({
+  props: {
+    pageProps: {
+      anonSession: { access_token: 'anon-token' },
+      dehydratedState: {
+        queries: [{ queryKey: ['tracks', { page: 1, per_page: 150, order_by: '-release_date,release_id', preorder: false, genre_id: '6', include_facets: true, publish_date: '' }] }]
+      }
+    }
+  }
+})
+const pagerRow = `
+  <div class="Pager_wrapper__x">
+    <div class="Pager_subWrapper__x">Results</div>
+    <div class="Pager_container__x"><div class="Pager_container__x pages"><a href="?page=2">Next</a></div></div>
+  </div>`
+
+const visitTrackList = async (page: Page, url = siteUrl) => {
   await page.route('https://www.beatport.com/**', route =>
     route.fulfill({
       contentType: 'text/html',
       body: `<!doctype html>
+        <script id="__NEXT_DATA__" type="application/json">${nextData}</script>
         <div class="TrackMeta_metaItem__x1"><div>BPM<!-- -->:</div><span>86</span></div>
         <div class="TrackMeta_metaItem__x1"><div>Key<!-- -->:</div><span>Gb Minor</span></div>
+        ${pagerRow}
         <main id="list"></main>
+        ${pagerRow}
         <div id="bp-player"><p>87 bpm</p><p>A minor</p></div>`
     })
   )
-  await page.goto(siteUrl)
+  await page.goto(url)
   await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-next-prev-play-keyboard/)
 }
 
@@ -98,6 +119,57 @@ test('remembers the last played track and highlights it after reload', async ({ 
   await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', true)
   await expect(rows(page).nth(1), 'on: marked again').toHaveClass(/bp-ui-tweak-last-played__active/)
   await expect(rows(page).nth(1)).toHaveClass(/current/)
+})
+
+test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
+  // Stand-in for the catalog API: 400 tracks newest first, three release days. Track 320 is the 70th
+  // of its day, 250 newer tracks precede it, so with 150 per page it sits on page 3.
+  const catalog = Array.from({ length: 400 }, (_, i) => ({ id: i + 1, publish_date: i < 100 ? '2026-10-10' : i < 250 ? '2026-10-09' : '2026-10-08' }))
+  const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization', 'access-control-allow-methods': 'GET, OPTIONS' }
+  const tokens: (string | undefined)[] = []
+  await page.route('https://api.beatport.com/v4/**', route => {
+    const request = route.request()
+    if (request.method() === 'OPTIONS') {
+      return route.fulfill({ status: 204, headers: cors })
+    }
+    tokens.push(request.headers()['authorization'])
+    const url = new URL(request.url())
+    const detail = url.pathname.match(/\/v4\/catalog\/tracks\/(\d+)\/$/)
+    if (detail) {
+      return route.fulfill({ json: catalog.find(track => track.id === Number(detail[1])), headers: cors })
+    }
+    let results = catalog
+    const range = url.searchParams.get('publish_date')
+    if (range) {
+      const [from, to] = range.split(':')
+      results = results.filter(track => track.publish_date >= from && track.publish_date <= to)
+    }
+    const pageNumber = Number(url.searchParams.get('page') ?? 1)
+    const perPage = Number(url.searchParams.get('per_page') ?? 25)
+    return route.fulfill({ json: { count: results.length, results: results.slice((pageNumber - 1) * perPage, pageNumber * perPage) }, headers: cors })
+  })
+
+  await visitTrackList(page, 'https://www.beatport.com/genre/techno/6/tracks?page=1&per_page=150')
+  const buttons = page.locator('.bp-ui-tweak-last-played-button')
+  await expect(buttons, 'one per pager row').toHaveCount(2)
+  await expect(buttons.first(), 'nothing played here yet').toHaveAttribute('data-state', 'empty')
+  await expect(buttons.first()).toHaveText('Last played')
+  const image = buttons.first().locator('img')
+  await expect(image, 'icon served from the extension').toHaveAttribute('src', /^chrome-extension:\/\//)
+  await expect.poll(() => image.evaluate(img => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth), 'icon loads').toBe(36)
+
+  await worker.evaluate(() => chrome.storage.sync.set({ 'beatport-last-played': { techno: { tracks: '320' } } }))
+  await page.reload()
+  await expect(buttons.first()).toHaveAttribute('data-state', '')
+  await buttons.last().click()
+  await page.waitForURL(/\/genre\/techno\/6\/tracks\?page=3&per_page=150$/)
+  expect(tokens[0], 'the anonymous token from the page').toBe('Bearer anon-token')
+
+  // the navigated page runs a fresh content script, wait for it before sending the toggle
+  await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-remember-last-played/)
+  await expect(buttons).toHaveCount(2)
+  await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', false)
+  await expect(buttons, 'off: buttons gone').toHaveCount(0)
 })
 
 test('highlights the row that is playing', async ({ page, worker }) => {

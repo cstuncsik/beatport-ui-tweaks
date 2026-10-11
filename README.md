@@ -3,7 +3,7 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 
 ## Features
 - Toggle list row highlighting (on hover and last played item)
-- Toggle saving last played item in local storage and highlighting it on page load and scrolling to it
+- Toggle saving last played item in local storage and highlighting it on page load and scrolling to it, with a "Last played" button next to the pager that jumps to the page the track has moved to since
 - Play next or previous items with keyboard shortcuts (a -> previous, z -> next)
 - Show the Camelot code in Camelot wheel colors, for harmonic mixing: one column at the end of the title cell in lists, next to the key on track pages and in the player
 - Alt+Shift+B opens the popup (change it under chrome://extensions/shortcuts)

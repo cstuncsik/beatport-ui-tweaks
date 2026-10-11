@@ -58,11 +58,14 @@ Storage: extend the value stored at play time from the id string to
 Readers accept the old string form. Gives the fallback a starting page, and a position estimate when the
 API is unavailable: `(page - 1) * per_page + index` converted to the current per_page.
 
-Popup: a "Go to last played" button under the toggles, visible when the active tab is a Beatport list
-page (`activeTab` grants the URL while the popup is open). Click sends `{ action: 'go-to-last-played' }`
-to the tab, the content script answers with `{ page }` or a reason, the popup shows it in one line.
-Alternative worth considering: the same button next to Beatport's pager on the page itself, no popup
-round trip, visible exactly where the paging pain is.
+Decided 2026-10-11: no separate toggle, the "Remember last played" feature covers it, and the button
+sits on the page, not in the popup. "Last played" pill next to Beatport's pager, left of "Previous", in
+both pager rows (above and below the list): same 36px pill as the per-page options, the extension icon
+on the left, green outline, tooltip starting with "Beatport UI Tweaks". Always shown while the feature
+is on, dimmed with "nothing played in this list yet" when there is no stored track for the list.
+Click: track on the page scrolls to it, otherwise "Searching…" and the navigation, "Not found", "Too far
+back" or "Only for newest first" for a few seconds when it cannot. Mockups of the three placements that
+were compared: a (after the per-page options), b (next to the pager, chosen), c (floating).
 
 ## Steps
 

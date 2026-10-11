@@ -12,7 +12,7 @@ export const defaultFeatures: Feature[] = [
   {
     id: 'bp-ui-tweak-remember-last-played',
     label: 'Remember last played',
-    description: 'Scrolls back to the track you played last when you return to a list',
+    description: 'Scrolls back to the track you played last when you return to a list, the "Last played" button finds the page it moved to',
     enabled: true
   },
   {
