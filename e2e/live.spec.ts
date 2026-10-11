@@ -2,9 +2,11 @@ import { test, expect, featureIds } from './fixtures'
 
 // Runs headed (see the "live" project): Cloudflare serves its challenge page to headless browsers.
 // Scheduled daily by .github/workflows/live-check.yml, not part of `pnpm test`.
-const url = 'https://www.beatport.com/genre/techno-peak-time-driving/6/top-100'
+// A tracks list with a pager, so the "Last played" button is covered too. The playlist features need
+// a logged-in account and stay out of this check.
+const url = 'https://www.beatport.com/genre/techno-peak-time-driving/6/tracks?per_page=150'
 
-test('the extension still works on the live Beatport top 100', async ({ page, worker }, testInfo) => {
+test('the extension still works on a live Beatport tracks list', async ({ page, worker }, testInfo) => {
   await page.goto(url, { waitUntil: 'domcontentloaded' })
   const rows = page.locator('.row')
   const rendered = await rows.first().waitFor({ timeout: 45_000 }).then(() => true, () => false)
@@ -39,7 +41,7 @@ test('the extension still works on the live Beatport top 100', async ({ page, wo
   await expect(second, 'extension highlights the playing row').toHaveClass(/bp-ui-tweak-last-played__active/, { timeout: 15_000 })
   await expect
     .poll(() => worker.evaluate(() => chrome.storage.sync.get('beatport-last-played')), { message: 'last played stored' })
-    .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { 'top-100': trackId } } })
+    .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { tracks: trackId } } })
 
   await expect
     .poll(() => page.locator('.cell.title[data-bp-camelot]').count(), { message: 'Camelot codes on the title column' })
@@ -48,4 +50,24 @@ test('the extension still works on the live Beatport top 100', async ({ page, wo
 
   await page.keyboard.press('z')
   await expect(trackRows.nth(2), 'z plays the next track').toHaveClass(/current/, { timeout: 15_000 })
+  const lastPlayedId = await trackRows.nth(2).locator('.cell.title a[href*="/track/"]').first().evaluate(a => a.href.split('/').pop())
+
+  const pills = page.locator('.bp-ui-tweak-last-played-button')
+  await expect(pills, '"Last played" pill in both pager rows').toHaveCount(2)
+  await expect(pills.first(), 'pill active once something was played').toHaveAttribute('data-state', '')
+
+  // the search: from page 2 the pill has to bring us back to the played track on page 1
+  await page.goto(url.replace('?', '?page=2&'), { waitUntil: 'domcontentloaded' })
+  if (!(await rows.first().waitFor({ timeout: 45_000 }).then(() => true, () => false))) {
+    console.log('::warning::Live check: Cloudflare challenged the second page load, the "Last played" search was not verified')
+    return
+  }
+  await pills.first().waitFor({ timeout: 15_000 })
+  await pills.first().click()
+  await page.waitForURL(/[?&]page=1&per_page=150/, { timeout: 60_000 })
+  if (!(await rows.first().waitFor({ timeout: 45_000 }).then(() => true, () => false))) {
+    console.log('::warning::Live check: Cloudflare challenged the page the "Last played" search landed on')
+    return
+  }
+  await expect(page.locator(`.row:has(.cell.title a[href$="/${lastPlayedId}"])`), 'landed on the played track').toHaveClass(/bp-ui-tweak-last-played__active/, { timeout: 15_000 })
 })

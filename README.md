@@ -17,6 +17,8 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 ![Page screenshot](store-assets/page-screenshot.jpg)
 ### Playlist filter in the add-to-playlist dialog
 ![Playlist filter screenshot](store-assets/playlist-filter-screenshot.jpg)
+### "Last played" button next to the pager
+![Last played screenshot](store-assets/last-played-screenshot.jpg)
 
 ## Installation
 
