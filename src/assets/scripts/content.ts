@@ -10,6 +10,7 @@ import { Feature } from '../../store'
 import { getGenreOrArtistAndTypeFromUrl } from './utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from './utils/chrome'
 import { camelotFromKeyText } from './utils/musical'
+import { accessToken, findTrackPage, listParams } from './utils/beatport-api'
 
 const body = document.querySelector<HTMLElement>('body')!
 const rowClass = 'row'
@@ -49,22 +50,128 @@ const scrollToLastPlayed = async () => {
   const { element } = await waitUntilElementIsVisible(
     `${ playedItemBaseSelector }[href$="/${ lastPlayedReleases[genreOrArtist]?.[type] }"]`
   )
-  if (element) {
-    const { top } = getOffset(element, body)
-    markedRow = element.closest(`.${ rowClass }`)
-    markedRow?.classList.add(rowActiveClass, rowActiveClassOriginal)
-    if (top && !scrolledToLastPlayed) {
-      window.scrollTo({
-        top: top - window.innerHeight / 2,
-        behavior: 'smooth'
-      })
-      scrolledToLastPlayed = true
-      mutationObserver.disconnect()
-    }
+  // every DOM change starts one of these, so by now another one may have finished the job, or the
+  // feature may have been switched off while waiting
+  if (!element || !body.classList.contains(rememberFeatureClass) || scrolledToLastPlayed) {
+    return
+  }
+  scrolledToLastPlayed = true
+  mutationObserver.disconnect()
+  markedRow = element.closest(`.${ rowClass }`)
+  markedRow?.classList.add(rowActiveClass, rowActiveClassOriginal)
+  const { top } = getOffset(element, body)
+  if (top) {
+    window.scrollTo({
+      top: top - window.innerHeight / 2,
+      behavior: 'smooth'
+    })
   }
 }
 
 const mutationObserver = new MutationObserver(scrollToLastPlayed)
+
+// "Last played" button next to Beatport's pager, in every pager row of a list: scrolls to the track
+// played last in this list when it is on the page, otherwise asks the catalog API which page the
+// track moved to and goes there. Part of the "remember last played" feature.
+const lastPlayedButtonClass = 'bp-ui-tweak-last-played-button'
+const lastPlayedLabel = 'Last played'
+const pagerSelector = '[class*="Pager_container"].pages'
+// Parcel turns this into the extension URL of the icon and lists it under web_accessible_resources
+const lastPlayedIcon = new URL('../images/icon.png?width=36', import.meta.url).href
+
+const storedLastPlayedId = async () => {
+  const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
+  return (await getLastPlayedReleases())[genreOrArtist]?.[type]
+}
+
+const lastPlayedButtons = () => [...document.querySelectorAll<HTMLButtonElement>(`.${lastPlayedButtonClass}`)]
+
+const setLastPlayedButtons = (label: string, state: '' | 'empty' | 'busy' = '') =>
+  lastPlayedButtons().forEach(button => {
+    button.querySelector('span')!.textContent = label
+    button.dataset.state = state
+  })
+
+const flashLastPlayedButtons = (label: string) => {
+  setLastPlayedButtons(label)
+  setTimeout(() => setLastPlayedButtons(lastPlayedLabel), 2500)
+}
+
+const refreshLastPlayedButtons = async () => {
+  const id = await storedLastPlayedId()
+  setLastPlayedButtons(lastPlayedLabel, id ? '' : 'empty')
+  lastPlayedButtons().forEach(button => {
+    button.title = id
+      ? 'Beatport UI Tweaks: go to the page the track you played last in this list is on now'
+      : 'Beatport UI Tweaks: nothing played in this list yet'
+  })
+}
+
+const goToLastPlayed = async () => {
+  const [button] = lastPlayedButtons()
+  const id = await storedLastPlayedId()
+  if (!button || button.dataset.state === 'busy' || !id) {
+    return
+  }
+  const row = document.querySelector(`${playedItemBaseSelector}[href$="/${id}"]`)?.closest(`.${rowClass}`)
+  if (row) {
+    row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    return
+  }
+  const params = listParams()
+  if (!params) {
+    flashLastPlayedButtons('Only for newest first')
+    return
+  }
+  const url = new URL(location.href)
+  const perPage = Number(url.searchParams.get('per_page')) || document.querySelectorAll(`.${rowClass} ${playOrReplayButtonSelector}`).length || 25
+  setLastPlayedButtons('Searching…', 'busy')
+  try {
+    const token = await accessToken()
+    const found = token ? await findTrackPage(id, params, perPage, token) : { reason: 'not-found' as const }
+    if ('page' in found) {
+      url.searchParams.set('page', String(found.page))
+      url.searchParams.set('per_page', String(perPage))
+      location.assign(url.href)
+    } else {
+      flashLastPlayedButtons(found.reason === 'unreachable' ? 'Too far back' : 'Not found')
+    }
+  } catch {
+    flashLastPlayedButtons('Search failed')
+  }
+}
+
+const createLastPlayedButton = () => {
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.className = lastPlayedButtonClass
+  button.dataset.state = 'empty'
+  const image = document.createElement('img')
+  image.src = lastPlayedIcon
+  image.alt = ''
+  const label = document.createElement('span')
+  label.textContent = lastPlayedLabel
+  button.append(image, label)
+  button.addEventListener('click', goToLastPlayed)
+  return button
+}
+
+const ensureLastPlayedButtons = () => {
+  let added = false
+  document.querySelectorAll(pagerSelector).forEach(pager => {
+    if (!pager.previousElementSibling?.classList.contains(lastPlayedButtonClass)) {
+      pager.before(createLastPlayedButton())
+      added = true
+    }
+  })
+  if (added) {
+    refreshLastPlayedButtons()
+  }
+}
+
+const removeLastPlayedButtons = () => lastPlayedButtons().forEach(button => button.remove())
+
+const syncLastPlayedButtons = observeWhileEnabled(rememberFeatureClass, ensureLastPlayedButtons, removeLastPlayedButtons)
 
 // Switching a feature off in the popup puts the page back the way Beatport rendered it, switching
 // it on applies the feature again right away. Camelot and the playlist filter do it through their
@@ -115,6 +222,7 @@ body.addEventListener('click', async e => {
           }
         }
       })
+      refreshLastPlayedButtons()
     }
   }
   initializeActiveObserver()
@@ -270,6 +378,7 @@ const removeFilterInput = () => {
 const syncPlaylistFilter = observeWhileEnabled(filterFeatureClass, ensureFilterInput, removeFilterInput)
 
 const syncFeatureObservers = () => {
+  syncLastPlayedButtons()
   syncCamelotObserver()
   syncPlaylistFilter()
 }

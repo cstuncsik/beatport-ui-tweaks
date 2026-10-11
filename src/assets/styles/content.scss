@@ -83,3 +83,58 @@
     display: none !important;
   }
 }
+
+// "Last played" button, content.ts puts it next to Beatport's pager, the same pill as the per-page
+// options with the extension icon so it reads as ours
+.bp-ui-tweaks-extension.bp-ui-tweak-remember-last-played {
+  .bp-ui-tweak-last-played-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px 0 10px;
+    border: 1px solid rgb(1 255 149 / 55%);
+    border-radius: 18px;
+    background: rgb(1 255 149 / 8%);
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+
+    img {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      border-color: variables.$green;
+      background: rgb(1 255 149 / 18%);
+    }
+
+    &[data-state='empty'] {
+      opacity: 0.45;
+      cursor: default;
+
+      &:hover {
+        border-color: rgb(1 255 149 / 55%);
+        background: rgb(1 255 149 / 8%);
+      }
+    }
+
+    &[data-state='busy'] {
+      cursor: progress;
+
+      img {
+        animation: bp-ui-tweak-pulse 1s infinite;
+      }
+    }
+  }
+}
+
+@keyframes bp-ui-tweak-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
