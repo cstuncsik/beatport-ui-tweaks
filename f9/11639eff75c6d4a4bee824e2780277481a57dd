@@ -1,0 +1,45 @@
+src/store.tsx
+  s_0238d1d57d563b::t_1a367c6740b1d6 15
+src/assets/scripts/utils/beatport-api.ts
+  s_0238d1d57d563b::t_f121ebb4ab3ea5 1-108
+src/assets/styles/content.scss
+  s_0238d1d57d563b::t_25aa6da3ee2d5e 106,129
+  s_0238d1d57d563b::t_568f82be4dc3bc 86-105,107-128,130-140
+e2e/extension.spec.ts
+  s_0238d1d57d563b::t_b0bc69caf706ae 22-40,45,48,50,54
+  s_0238d1d57d563b::t_a9ebb5ce1dda47 157-159
+  s_0238d1d57d563b::t_be3bdc299f674b 124-156,160-167,171-174
+  s_0238d1d57d563b::t_ca42d3ca10bde8 168-170
+docs/plans/go-to-last-played.md
+  s_0238d1d57d563b::t_41c455a4808515 61-68
+src/assets/scripts/content.ts
+  s_0238d1d57d563b::t_5607138da5d376 381
+  s_0238d1d57d563b::t_ffaaedb6892ae1 73-78,81-112,114-148,152-153,155-175
+  s_0238d1d57d563b::t_d37af676e6e695 113
+  s_0238d1d57d563b::t_9b7e51a876c04d 53-67
+  s_0238d1d57d563b::t_05a21a05d88bd5 13
+  s_0238d1d57d563b::t_25aa6da3ee2d5e 79-80,149-151,154
+  s_0238d1d57d563b::t_c248080a04be46 225
+README.md
+  s_0238d1d57d563b::t_71be2d692f930b 6
+package.json
+  s_0238d1d57d563b::t_147869336b0672 29-30
+pnpm-lock.yaml
+  s_0238d1d57d563b::t_6f649e681bae37 185-190,583-586,768-771,1755-1758,1885-1889,2722-2731,3043-3049,4220-4221,4335-4336
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f911639eff75c6d4a4bee824e2780277481a57dd",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
