@@ -1,6 +1,7 @@
 // Regenerates the Chrome Web Store screenshots in store-assets/ from the built extension:
 // page-screenshot.jpg is the whole page with the popup open, extension-screenshot.jpg a close-up
-// of the popup in the top right corner with part of the page around it. Both 1280x800.
+// of the popup in the top right corner with part of the page around it, last-played-screenshot.jpg
+// the page alone with the "Last played" pill next to the pager. All 1280x800.
 // Needs `pnpm build` first. Opens a real browser window: Beatport serves its bot challenge to headless ones.
 // playlist-filter-screenshot.jpg is not made here: it needs a logged-in account, so it is captured by hand
 // from a 1280x800 window at 2x (picker open, a filter typed) and scaled down to 1280x800 with sharp.
@@ -49,6 +50,8 @@ try {
   await page.mouse.move(size.width - 10, size.height / 2)
   await page.waitForTimeout(2500)
   const pageShot = await page.screenshot()
+  // the pager row with the "Last played" pill sits under the popup in page-screenshot, so it gets its own shot
+  await sharp(pageShot).resize(size.width, size.height).jpeg({ quality: 92 }).toFile(`${assets}last-played-screenshot.jpg`)
 
   const manifest = JSON.parse(readFileSync(`${dist}/manifest.json`, 'utf8'))
   const popup = await context.newPage()
@@ -89,7 +92,7 @@ try {
     .jpeg({ quality: 92 })
     .toFile(`${assets}extension-screenshot.jpg`)
 
-  console.log(`wrote ${assets}page-screenshot.jpg and extension-screenshot.jpg (${size.width}x${size.height})`)
+  console.log(`wrote ${assets}page-screenshot.jpg, extension-screenshot.jpg and last-played-screenshot.jpg (${size.width}x${size.height})`)
 } finally {
   await context.close()
 }
