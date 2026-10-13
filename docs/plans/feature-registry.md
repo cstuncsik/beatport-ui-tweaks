@@ -47,10 +47,19 @@ src/store.tsx                   popup state only, imports metadata from features
   rely on it. `bp-ui-tweaks-extension` on the body stays too.
 - `runtime.ts`: add the root class, call every `start`, listen for `{ feature: { id, enabled } }`
   messages, ask the background for the stored flags, and apply a flag by setting the class and calling
-  `toggle` only when the flag actually changed (fixes the popup-open re-scroll). Unknown ids are
-  ignored, so a pro package can register more without touching core.
+  `toggle` only when the flag actually changed (fixes the popup-open re-scroll). The first flags from
+  the background always count as changes, the applied map starts empty; only later messages are
+  deduped. Unknown ids are ignored, so a pro package can register more without touching core.
 - `index.ts` must stay free of DOM and `chrome.*` references: the popup bundle and the e2e fixtures
-  import it. Behavior modules import their id from it.
+  import it. Behavior modules import their id from it. `mru-playlists.ts` may import it for its id and
+  nothing else from the registry, it runs in the page world without `chrome.*`.
+- Three entry points take the list, not one. The popup renders it (`FeatureProvider` gets `features`
+  as a prop), the background merges stored flags with it (`getFeatures(defaults)`), the content
+  runtime runs the behaviors (`runContent(list)`). Core's three entries pass core's lists; a pro
+  package ships its own three entry files passing merged lists. This also breaks today's import
+  cycle `store.tsx` → `utils/chrome.ts` → `store.tsx`, which is what drags React into the background
+  and content bundles. `utils/chrome.ts` stops importing from `store.tsx`.
+- `store.tsx` keeps `export type Feature = FeatureMeta` so the popup components stay untouched.
 - The shared click listener splits in two (remember stores the played track, highlight restarts its
   observer), each in its feature's `start`. Order does not matter.
 - Metadata gets the optional `pro` flag now, unused until the license step, so the type does not
@@ -59,18 +68,22 @@ src/store.tsx                   popup state only, imports metadata from features
 
 ## Steps
 
-1. `types.ts`, `index.ts` with the six entries moved from `store.tsx`, `store.tsx` and
-   `utils/chrome.ts` import from it, `e2e/fixtures.ts` builds `featureIds` from it. Build, popup test,
-   background bundle no longer contains React.
+1. `types.ts`, `index.ts` with the six entries moved from `store.tsx`. `getFeatures(defaults)` takes
+   the list and `utils/chrome.ts` drops its import of `store.tsx`; `FeatureProvider` takes the list as
+   a prop and `index.tsx` passes core's; the background passes core's to `getFeatures`;
+   `e2e/fixtures.ts` builds `featureIds` from it. Build, popup test, background bundle no longer
+   contains React (today 58 kB with React, content 118 kB).
 2. `selectors.ts`, `runtime.ts`, `content.ts` with the five modules extracted one by one from the old
    content script, old file reduced to the three-line entry. After each extraction: `pnpm build && pnpm test`.
 3. Move `mru-playlists.ts`, update the manifest path. Build, MRU test.
-4. Runtime dedupes unchanged flags. Test: open the popup (send all flags again) after the stored track
-   was scrolled to, assert no second scroll and no second mark. Add to the remember test.
+4. Runtime dedupes unchanged flags. Test, in the remember test after the load scroll: scroll to the
+   top, send all flags again (what the popup does on open), assert the page stays at the top and the
+   marked row count stays one.
 5. Highlight at load: with `toggle(true)` now running when the flags arrive, the playing row is
    highlighted without a click. Assert it in the highlight test.
 6. Bundle sizes and the three-line entry noted in the PR. Live check dispatched on the branch.
-7. Version 2.6.1 (nothing user-facing beyond the two fixes), README untouched.
+7. Version 2.6.1: a refactor plus two fixes is a patch, the pro docs saying 2.7.0 for this step are
+   corrected. README untouched.
 
 ## Out of scope
 
