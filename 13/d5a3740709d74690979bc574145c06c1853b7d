@@ -1,0 +1,72 @@
+docs/plans/feature-registry.md
+  s_0238d1d57d563b::t_2fab4bf8ffa155 1-2,4-49,53,63-70,76-78,82-84,87-99
+  s_0238d1d57d563b::t_d5ac4a6ecea5aa 71-75
+  s_0238d1d57d563b::t_49edd2bf7b79cd 54-62
+  s_0238d1d57d563b::t_02f1e8c0786f32 85-86
+  s_0238d1d57d563b::t_7687dbe3ca4159 50-52
+  s_0238d1d57d563b::t_be42d4f3b56cbf 79-81
+  s_0238d1d57d563b::t_60a7bb9f8e568a 3
+e2e/fixtures.ts
+  s_0238d1d57d563b::t_dfbb0ce3352263 5-6,8
+src/store.tsx
+  s_0238d1d57d563b::t_2673e167ed7ca8 3,5,13-14,19,37-38
+src/manifest.json
+  s_0238d1d57d563b::t_f6eb8038c50eac 41
+  s_0238d1d57d563b::t_c06816e62ea62a 4
+src/features/index.ts
+  s_0238d1d57d563b::t_68beeb1b3243a7 1-51
+src/features/playlist-filter.ts
+  s_0238d1d57d563b::t_a5fa20062ce7d9 1-97
+src/assets/scripts/content.ts
+  s_0238d1d57d563b::t_54d899cc07212f 1-2,4
+src/features/content.ts
+  s_0238d1d57d563b::t_ba91f2f1ad8c24 1-2,3-6,9
+  s_0238d1d57d563b::t_b3308493e98bfd 7-8,10
+src/features/runtime.ts
+  s_0238d1d57d563b::t_7df3ee42fa7867 1-32
+src/assets/scripts/background.ts
+  s_0238d1d57d563b::t_e28773b855ed5f 2,6
+e2e/extension.spec.ts
+  s_0238d1d57d563b::t_2e9cccac8c68a2 113-114,117,119,123,129-133,135
+  s_0238d1d57d563b::t_c7e3a1022a1153 118,120-122,124-128,134
+  s_0238d1d57d563b::t_71e626ca4b4efe 195,198-200,202-210,213,215
+src/features/remember-last-played.ts
+  s_0238d1d57d563b::t_aa7f5823365c84 1-188
+src/features/types.ts
+  s_0238d1d57d563b::t_c3d525c6886f6d 1-17
+src/features/selectors.ts
+  s_0238d1d57d563b::t_7c889b2152f66b 1-6
+src/features/keyboard-playback.ts
+  s_0238d1d57d563b::t_9d203904dea9af 1-30
+src/assets/scripts/utils/chrome.ts
+  s_0238d1d57d563b::t_d4ef828ea51ad7 1
+  s_0238d1d57d563b::t_f9f40a51acce2d 22-23,25-26,32
+src/features/camelot-key.ts
+  s_0238d1d57d563b::t_2dcbc3b62467f1 1-49
+src/index.tsx
+  s_0238d1d57d563b::t_5fcff7e05bfc12 5,10
+src/features/mru-playlists.ts
+  s_0238d1d57d563b::t_162d51250e328d 8,10
+package.json
+  s_0238d1d57d563b::t_99970453d9e135 3
+src/assets/styles/content.scss
+  s_0238d1d57d563b::t_1cb75dc261b090 3-5,8
+e2e/live.spec.ts
+  s_0238d1d57d563b::t_8a490f045a66ab 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "13d5a3740709d74690979bc574145c06c1853b7d",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
