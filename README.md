@@ -10,6 +10,10 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 - Playlists you added tracks to come first in the add-to-playlist dialog, latest first
 - A filter box in the add-to-playlist dialog, narrows the list as you type
 
+## What's new
+
+See the [changelog](CHANGELOG.md).
+
 ## Screenshots
 ### Extension
 ![Extension screenshot](store-assets/extension-screenshot.jpg)
