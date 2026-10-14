@@ -1,6 +1,6 @@
 {
   "name": "beatport-ui-tweaks",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "type": "module",
   "description": "A web extension that adds some useful feature to beatport.com site",
   "scripts": {
