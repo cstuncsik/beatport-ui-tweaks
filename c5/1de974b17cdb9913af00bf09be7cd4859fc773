@@ -1,0 +1,25 @@
+scripts/changelog.mjs
+  s_0238d1d57d563b::t_bb4762484dfa62 1-22
+README.md
+  s_0238d1d57d563b::t_462835e1be4cfa 27-32
+.github/workflows/release.yml
+  s_0238d1d57d563b::t_4096a4992b2a46 1-34
+.github/workflows/ci.yml
+  s_0238d1d57d563b::t_485c97581063a2 20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c51de974b17cdb9913af00bf09be7cd4859fc773",
+  "prompts": {},
+  "sessions": {
+    "s_0238d1d57d563b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0dd17bd-0b6e-4da8-8436-1ccb610eb2da",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
