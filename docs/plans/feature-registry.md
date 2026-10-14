@@ -1,6 +1,6 @@
 # Feature registry
 
-Status: plan, 2026-10-13. Branch `feature-registry` from main at 2.6.0. Step 1 of the paid-features
+Status: done 2026-10-14 on branch `feature-registry` from main at 2.6.0, shipped as 2.6.1 (PR #8). Bundles after: content 69 kB, background 8 kB, both without React (118 kB and 58 kB before). Step 1 of the paid-features
 work: paid features will be registry entries from another package, so core needs a registry first.
 No behavior change except two fixes noted below.
 
