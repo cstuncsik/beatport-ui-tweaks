@@ -1,0 +1,34 @@
+name: Release
+
+# Pushing a tag like v2.6.2 builds the extension and publishes the GitHub release with the zip and
+# the matching CHANGELOG.md entry as notes. The store upload stays manual: take the zip from the
+# release page to the Chrome Web Store dashboard.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          [ "${GITHUB_REF_NAME}" = "v${version}" ] || { echo "tag ${GITHUB_REF_NAME} but package.json says ${version}"; exit 1; }
+      - run: node scripts/changelog.mjs notes > release-notes.md
+      - run: pnpm build
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" archives/*.zip --title "${GITHUB_REF_NAME}" --notes-file release-notes.md

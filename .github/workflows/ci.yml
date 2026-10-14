@@ -17,6 +17,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Changelog has an entry for this version
+        run: node scripts/changelog.mjs check
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
