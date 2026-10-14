@@ -24,6 +24,12 @@ See the [changelog](CHANGELOG.md).
 ### "Last played" button next to the pager
 ![Last played screenshot](store-assets/last-played-screenshot.jpg)
 
+## Releasing
+
+1. The PR that bumps `version` in `package.json` and `src/manifest.json` adds the entry at the top of `CHANGELOG.md` (CI fails without it).
+2. After the merge, tag main: `git tag vX.Y.Z && git push origin vX.Y.Z`. The release workflow builds the zip and publishes the GitHub release with the changelog entry as notes.
+3. Upload the zip from the release page to the Chrome Web Store dashboard.
+
 ## Installation
 
 ### Chrome
