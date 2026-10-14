@@ -5,9 +5,9 @@
 // the user added tracks to go first, latest use first, and are dropped from the page they belong to.
 // No chrome.* API in this world: the feature flag is the body class content.ts sets, state is localStorage.
 
-export {}
+import { ids } from './index'
 
-const featureClass = 'bp-ui-tweak-mru-playlists'
+const featureClass = ids.mruPlaylists
 const storageKey = 'bp-ui-tweak-mru-playlists'
 const listUrl = /\/v4\/my\/playlists\/\?/
 const playlistUrl = /\/v4\/my\/playlists\/(\d+)\/(tracks\/bulk\/)?$/
