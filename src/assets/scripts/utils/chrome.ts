@@ -1,4 +1,4 @@
-import { defaultFeatures, Feature } from '../../../store'
+import type { FeatureMeta } from '../../../features/types'
 import { getLastPlayedReleasesFromLocalStorage } from './storage'
 
 export type LastPlayed = Record<string, Record<string, string>>
@@ -19,17 +19,17 @@ export const getItem = <T>(key: string): Promise<T> =>
     })
   })
 
-// Only the enabled flags come from storage, labels and new features always come from code
-export const getFeatures = async (): Promise<Feature[]> => {
+// Only the enabled flags come from storage, labels and new features always come from the given list
+export const getFeatures = async (defaults: FeatureMeta[]): Promise<FeatureMeta[]> => {
   try {
-    const stored = await getItem<Feature[]>(featuresStorageKey)
-    return defaultFeatures.map(feature => ({
+    const stored = await getItem<FeatureMeta[]>(featuresStorageKey)
+    return defaults.map(feature => ({
       ...feature,
       enabled: stored.find(({ id }) => id === feature.id)?.enabled ?? feature.enabled
     }))
   } catch (e) {
     console.warn(e)
-    return defaultFeatures
+    return defaults
   }
 }
 

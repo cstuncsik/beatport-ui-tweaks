@@ -38,7 +38,7 @@
         "https://*.beatport.com/*"
       ],
       "js": [
-        "assets/scripts/mru-playlists.ts"
+        "features/mru-playlists.ts"
       ],
       "world": "MAIN",
       "run_at": "document_start"

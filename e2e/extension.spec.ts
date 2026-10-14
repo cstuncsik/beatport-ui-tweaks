@@ -110,9 +110,29 @@ test('remembers the last played track and highlights it after reload', async ({ 
 
   await page.reload()
   await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-remember-last-played/)
+  // room above the list, so the scroll to the remembered row is observable
+  await page.locator('#list').evaluate(list => list.insertAdjacentHTML('beforebegin', '<div style="height: 3000px"></div>'))
   await renderRows(page, ['111', '222', '333'])
   await expect(rows(page).nth(1)).toHaveClass(/bp-ui-tweak-last-played__active/)
-  await expect(rows(page).nth(0)).not.toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect(rows(page).nth(2)).not.toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect.poll(() => page.evaluate(() => scrollY), { message: 'scrolled to the remembered row' }).toBeGreaterThan(1000)
+
+  // the popup re-sends every flag when it opens, unchanged flags must not run the features again.
+  // Scrolling back up during Chromium's smooth scroll leaves a small stray move, so the check counts
+  // scroll events in a quiet window instead of trusting the position.
+  await page.evaluate(() => scrollTo(0, 0))
+  await page.waitForTimeout(500)
+  await page.evaluate(() => {
+    Object.assign(window, { __scrolls: 0 })
+    addEventListener('scroll', () => (window as unknown as { __scrolls: number }).__scrolls++)
+  })
+  const marked = await page.locator('.bp-ui-tweak-last-played__active').count()
+  for (const id of featureIds) {
+    await toggleFeature(worker, id, true)
+  }
+  await page.waitForTimeout(600)
+  expect(await page.evaluate(() => (window as unknown as { __scrolls: number }).__scrolls), 'no second scroll').toBe(0)
+  await expect(page.locator('.bp-ui-tweak-last-played__active'), 'no second mark').toHaveCount(marked)
 
   await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', false)
   await expect(rows(page).nth(1), 'off: the row is as Beatport rendered it').not.toHaveClass(/bp-ui-tweak-last-played__active|current/)
@@ -175,6 +195,7 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
 test('highlights the row that is playing', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222'])
+  await expect(rows(page).nth(0), 'the row playing at load is highlighted without a click').toHaveClass(/bp-ui-tweak-last-played__active/)
   await rows(page).nth(1).getByTestId('play-button').click()
   // the observer reacts to the next DOM change, on the real site the player re-renders constantly
   await page.locator('#list').evaluate(list => list.append(document.createElement('div')))

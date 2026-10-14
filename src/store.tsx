@@ -1,51 +1,8 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import { getFeatures } from './assets/scripts/utils/chrome'
+import type { FeatureMeta } from './features/types'
 
-export type Feature = {
-  id: string
-  label: string
-  description: string
-  enabled: boolean
-}
-
-export const defaultFeatures: Feature[] = [
-  {
-    id: 'bp-ui-tweak-remember-last-played',
-    label: 'Remember last played',
-    description: 'Scrolls back to the track you played last when you return to a list, the "Last played" button finds the page it moved to',
-    enabled: true
-  },
-  {
-    id: 'bp-ui-tweak-highlight-played-item',
-    label: 'Highlight playing track',
-    description: 'Outlines the row that is playing',
-    enabled: true
-  },
-  {
-    id: 'bp-ui-tweak-next-prev-play-keyboard',
-    label: 'Keyboard playback',
-    description: 'A plays the previous track, Z the next one',
-    enabled: true
-  },
-  {
-    id: 'bp-ui-tweak-camelot-key',
-    label: 'Show Camelot key',
-    description: 'Adds the Camelot code of the key, for harmonic mixing',
-    enabled: true
-  },
-  {
-    id: 'bp-ui-tweak-mru-playlists',
-    label: 'Recently used playlists first',
-    description: 'Playlists you added tracks to lead the add-to-playlist list, latest first',
-    enabled: true
-  },
-  {
-    id: 'bp-ui-tweak-playlist-filter',
-    label: 'Playlist filter box',
-    description: 'A search box in the add-to-playlist dialog, narrows the list as you type',
-    enabled: true
-  }
-]
+export type Feature = FeatureMeta
 
 const toggleFeature = (id: string, features?: Feature[]): Feature[] | undefined =>
   features?.map(feature => ({
@@ -53,12 +10,13 @@ const toggleFeature = (id: string, features?: Feature[]): Feature[] | undefined 
     enabled: feature.id === id ? !feature.enabled : feature.enabled
   }))
 
-const useFeatures = () => {
+// The popup state: the given list with the enabled flags from storage merged in
+const useFeatures = (defaults: Feature[]) => {
   const [state, setState] = useState<{ features?: Feature[]; loading: boolean }>({ loading: true })
 
   const getInitialFeatures = async () => {
     setState({ loading: true })
-    const features = await getFeatures()
+    const features = await getFeatures(defaults)
     setState({ features, loading: false })
   }
 
@@ -76,6 +34,6 @@ const FeatureContext = createContext<ReturnType<typeof useFeatures>>({ toggleFea
 
 export const useFeatureContext = () => useContext(FeatureContext)
 
-export const FeatureProvider = ({ children }: { children: ReactNode }) => (
-  <FeatureContext.Provider value={useFeatures()}>{children}</FeatureContext.Provider>
+export const FeatureProvider = ({ features, children }: { features: Feature[]; children: ReactNode }) => (
+  <FeatureContext.Provider value={useFeatures(features)}>{children}</FeatureContext.Provider>
 )

@@ -2,15 +2,10 @@ import { test as base, expect, type BrowserContext, type Worker } from '@playwri
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
+import { features } from '../src/features'
+
 export const dist = fileURLToPath(new URL('../dist', import.meta.url))
-export const featureIds = [
-  'bp-ui-tweak-remember-last-played',
-  'bp-ui-tweak-highlight-played-item',
-  'bp-ui-tweak-next-prev-play-keyboard',
-  'bp-ui-tweak-camelot-key',
-  'bp-ui-tweak-mru-playlists',
-  'bp-ui-tweak-playlist-filter'
-]
+export const featureIds = features.map(({ id }) => id)
 
 export type Options = { headlessMode: boolean }
 
