@@ -38,7 +38,7 @@ test('the extension still works on a live Beatport tracks list', async ({ page, 
   const trackId = await second.locator('.cell.title a[href*="/track/"]').first().evaluate(a => a.href.split('/').pop())
   await second.locator('button[data-testid="play-button"]').first().click()
   await expect(second, 'Beatport marks the playing row').toHaveClass(/current/, { timeout: 15_000 })
-  await expect(second, 'extension highlights the playing row').toHaveClass(/bp-ui-tweak-last-played__active/, { timeout: 15_000 })
+  await expect.poll(() => second.evaluate(el => getComputedStyle(el).borderTopColor), { message: 'extension outlines the playing row', timeout: 15_000 }).toBe('rgb(1, 255, 149)')
   await expect
     .poll(() => worker.evaluate(() => chrome.storage.sync.get('beatport-last-played')), { message: 'last played stored' })
     .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { tracks: trackId } } })

@@ -192,19 +192,27 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
   await expect(buttons, 'off: buttons gone').toHaveCount(0)
 })
 
-test('highlights the row that is playing', async ({ page, worker }) => {
+test('outlines the row that is playing, also when Beatport moves on by itself', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222'])
-  await expect(rows(page).nth(0), 'the row playing at load is highlighted without a click').toHaveClass(/bp-ui-tweak-last-played__active/)
+  const green = 'rgb(1, 255, 149)'
+  const outline = (row: number) => rows(page).nth(row).evaluate(el => getComputedStyle(el).borderTopColor)
+  await expect.poll(() => outline(0), 'the row playing at load').toBe(green)
   await rows(page).nth(1).getByTestId('play-button').click()
-  // the observer reacts to the next DOM change, on the real site the player re-renders constantly
-  await page.locator('#list').evaluate(list => list.append(document.createElement('div')))
-  await expect(rows(page).nth(1)).toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect.poll(() => outline(1), 'the clicked row').toBe(green)
+  expect(await outline(0), 'the previous one no more').not.toBe(green)
+
+  // a track ends and Beatport moves "current" to the next row without any click
+  await page.evaluate(() => {
+    document.querySelector('.row.current')?.classList.remove('current')
+    document.querySelector('.row')?.classList.add('current')
+  })
+  await expect.poll(() => outline(0), 'the row Beatport moved on to').toBe(green)
 
   await toggleFeature(worker, 'bp-ui-tweak-highlight-played-item', false)
-  await expect(rows(page).nth(1), 'off: class gone').not.toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect.poll(() => outline(0), 'off').not.toBe(green)
   await toggleFeature(worker, 'bp-ui-tweak-highlight-played-item', true)
-  await expect(rows(page).nth(1), 'on: the playing row is highlighted at once').toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect.poll(() => outline(0), 'on again').toBe(green)
 })
 
 test('z and a keys play the next and previous track', async ({ page }) => {

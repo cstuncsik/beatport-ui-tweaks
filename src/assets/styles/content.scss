@@ -1,8 +1,11 @@
 @use 'variables';
 
+// Highlight playing track: Beatport keeps its own "current" class on the row that plays, also when
+// it moves on to the next track by itself, so the outline follows that class and needs no script.
+// The remembered row gets "current" from remember-last-played.ts and is outlined the same way.
 .bp-ui-tweaks-extension {
   &.bp-ui-tweak-highlight-played-item {
-    .bp-ui-tweak-last-played__active {
+    .row.current {
       border: 1px solid variables.$green;
     }
   }
