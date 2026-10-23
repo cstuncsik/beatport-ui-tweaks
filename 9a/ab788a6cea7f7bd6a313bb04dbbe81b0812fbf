@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_9f320dbc77759e::t_c0a461023266c7 10
+e2e/extension.spec.ts
+  s_9f320dbc77759e::t_c0a461023266c7 150-170
+src/features/remember-last-played.ts
+  s_9f320dbc77759e::t_c0a461023266c7 27-31,51-59,189-203,207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9aab788a6cea7f7bd6a313bb04dbbe81b0812fbf",
+  "prompts": {},
+  "sessions": {
+    "s_9f320dbc77759e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f894a99f-0faf-4ddb-9fbb-d3fbf7f525b2",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
