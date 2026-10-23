@@ -21,13 +21,13 @@ const flatsToSharps: Record<string, KeySignatures> = {
   Bb: 'A#'
 }
 
-// "86 BPM - Bb Minor", "Key: D Minor", "A minor" -> "3A", "7A", "8A"; null when the text has no key
+// "86 BPM - Bb Minor", "Key: D Minor", "A minor", "F Maj" -> "3A", "7A", "8A", "7B"; null when the text has no key
 export const camelotFromKeyText = (text: string): string | null => {
-  const match = /([A-G])([b#♭♯])?\s*(major|minor|Major|Minor)/.exec(text)
+  const match = /([A-G])([b#♭♯])?\s*(Maj|Min|maj|min)/.exec(text)
   if (!match) {
     return null
   }
   const [, letter, accidental = '', mode] = match
   const key = `${letter}${accidental.replace('♭', 'b').replace('♯', '#')}`
-  return convertKeySignatureToCamelot(flatsToSharps[key] ?? (key as KeySignatures), mode.toLowerCase() as Modes) ?? null
+  return convertKeySignatureToCamelot(flatsToSharps[key] ?? (key as KeySignatures), /maj/i.test(mode) ? 'major' : 'minor') ?? null
 }

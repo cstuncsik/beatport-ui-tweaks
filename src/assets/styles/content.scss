@@ -1,11 +1,11 @@
 @use 'variables';
 
-// Highlight playing track: Beatport keeps its own "current" class on the row that plays, also when
-// it moves on to the next track by itself, so the outline follows that class and needs no script.
-// The remembered row gets "current" from remember-last-played.ts and is outlined the same way.
+// Highlight playing track: Beatport marks the row that plays with data-active, also when it moves on
+// to the next track by itself, so the outline follows that attribute and needs no script. The
+// remembered row gets the attribute from remember-last-played.ts and is outlined the same way.
 .bp-ui-tweaks-extension {
   &.bp-ui-tweak-highlight-played-item {
-    .row.current {
+    .row[data-active='true'] {
       border: 1px solid variables.$green;
     }
   }
@@ -33,20 +33,8 @@
     vertical-align: baseline;
   }
 
-  // list tables: content.ts puts the attribute on the title cell, the chip sits at its right edge,
-  // vertically centered in the row, so the codes of all rows form one column
-  .cell.title[data-bp-camelot] {
-    position: relative;
-    padding-right: 4.5em;
-
-    &::after {
-      position: absolute;
-      top: 50%;
-      right: 8px;
-      margin-left: 0;
-      transform: translateY(-50%);
-    }
-  }
+  // list tables: content.ts puts the attribute on the title cell, a flex row whose title text takes
+  // the free space, so the chip after it sits at the right edge and the codes of all rows form one column
 
   @for $n from 1 through 12 {
     [data-bp-camelot='#{$n}A'],
