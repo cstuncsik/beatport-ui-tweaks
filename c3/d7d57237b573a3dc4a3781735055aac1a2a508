@@ -1,0 +1,34 @@
+src/features/remember-last-played.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 3-4,15,37-41
+src/features/highlight-played-item.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 1-24
+CHANGELOG.md
+  s_9f320dbc77759e::t_7857b2c37cc1ef 8-9
+e2e/extension.spec.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 202,205,213-218,236-240
+src/assets/styles/content.scss
+  s_9f320dbc77759e::t_7857b2c37cc1ef 3-7,10-12
+src/features/keyboard-playback.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 3,6-7,18
+src/features/content.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 3,8-10
+e2e/live.spec.ts
+  s_9f320dbc77759e::t_7857b2c37cc1ef 41,46-50
+  s_9f320dbc77759e::t_168dd2316f837d 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c3d7d57237b573a3dc4a3781735055aac1a2a508",
+  "prompts": {},
+  "sessions": {
+    "s_9f320dbc77759e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f894a99f-0faf-4ddb-9fbb-d3fbf7f525b2",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
