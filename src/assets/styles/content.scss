@@ -1,12 +1,15 @@
 @use 'variables';
 
-// Highlight playing track: Beatport marks the row that plays with data-active, also when it moves on
-// to the next track by itself, so the outline follows that attribute and needs no script. The
-// remembered row gets the attribute from remember-last-played.ts and is outlined the same way.
+// Highlight playing track: Beatport outlines the row it plays (data-active) only while it plays, the
+// outline goes with a pause or stop. highlight-played-item.ts keeps the extension's class on the row
+// that played last, so the same outline stays until another track starts, and the remembered row at
+// load gets the class from remember-last-played.ts. Same outline as Beatport's own, so while a track
+// plays the two draw one line.
 .bp-ui-tweaks-extension {
   &.bp-ui-tweak-highlight-played-item {
-    .row[data-active='true'] {
-      border: 1px solid variables.$green;
+    .row.bp-ui-tweak-last-played__active {
+      outline: 1px solid variables.$green;
+      outline-offset: -1px;
     }
   }
 }

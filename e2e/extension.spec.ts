@@ -142,7 +142,6 @@ test('remembers the last played track and highlights it after reload', async ({ 
   await expect(rows(page).nth(1)).not.toHaveAttribute('data-active', /./)
   await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', true)
   await expect(rows(page).nth(1), 'on: marked again').toHaveClass(/bp-ui-tweak-last-played__active/)
-  await expect(rows(page).nth(1)).toHaveAttribute('data-active', 'true')
 })
 
 test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
@@ -200,11 +199,10 @@ test('outlines the row that is playing, also when Beatport moves on by itself', 
   await visitTrackList(page)
   await renderRows(page, ['111', '222'])
   const green = 'rgb(1, 255, 149)'
-  const outline = (row: number) => rows(page).nth(row).evaluate(el => getComputedStyle(el).borderTopColor)
-  await expect.poll(() => outline(0), 'the row playing at load').toBe(green)
+  const outline = (row: number) => rows(page).nth(row).evaluate(el => getComputedStyle(el).outlineColor)
   await rows(page).nth(1).getByRole('button', { name: 'Play' }).click()
   await expect.poll(() => outline(1), 'the clicked row').toBe(green)
-  expect(await outline(0), 'the previous one no more').not.toBe(green)
+  expect(await outline(0), 'no other row').not.toBe(green)
 
   // a track ends and Beatport moves its marker to the next row without any click
   await page.evaluate(() => {
@@ -212,6 +210,12 @@ test('outlines the row that is playing, also when Beatport moves on by itself', 
     document.querySelector('.row')?.setAttribute('data-active', 'true')
   })
   await expect.poll(() => outline(0), 'the row Beatport moved on to').toBe(green)
+  expect(await outline(1), 'the previous one no more').not.toBe(green)
+
+  // paused or stopped: Beatport takes its marker off, the outline stays on the row that played last
+  await page.evaluate(() => document.querySelector('.row[data-active]')?.removeAttribute('data-active'))
+  await expect(rows(page).nth(0)).not.toHaveAttribute('data-active', /./)
+  expect(await outline(0), 'paused: outline stays').toBe(green)
 
   await toggleFeature(worker, 'bp-ui-tweak-highlight-played-item', false)
   await expect.poll(() => outline(0), 'off').not.toBe(green)
@@ -229,6 +233,11 @@ test('z and a keys play the next and previous track', async ({ page }) => {
   await expect(rows(page).nth(2)).toHaveAttribute('data-active', 'true')
   await page.keyboard.press('a')
   await expect(rows(page).nth(1)).toHaveAttribute('data-active', 'true')
+
+  // paused: Beatport's marker is gone, the keys go on from the row that played last
+  await page.evaluate(() => document.querySelector('.row[data-active]')?.removeAttribute('data-active'))
+  await page.keyboard.press('z')
+  await expect(rows(page).nth(2)).toHaveAttribute('data-active', 'true')
 })
 
 test('recently used playlists lead the add-to-playlist list', async ({ page, worker }) => {

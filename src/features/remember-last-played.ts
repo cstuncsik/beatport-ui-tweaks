@@ -1,7 +1,7 @@
 import { ids } from './index'
 import type { ContentFeature } from './types'
-import { playedItemBaseSelector, playButtonSelector, rowActiveClass, rowClass, rowPlayingAttribute } from './selectors'
-import { getOffset, observeWhileEnabled, waitUntilElementIsVisible } from '../assets/scripts/utils/dom'
+import { playedItemBaseSelector, playButtonSelector, rowActiveClass, rowClass } from './selectors'
+import { observeWhileEnabled, waitUntil, waitUntilElementIsVisible } from '../assets/scripts/utils/dom'
 import { getGenreOrArtistAndTypeFromUrl } from '../assets/scripts/utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from '../assets/scripts/utils/chrome'
 import { accessToken, findTrackPage, listParams } from '../assets/scripts/utils/beatport-api'
@@ -12,8 +12,7 @@ const id = ids.rememberLastPlayed
 const enabled = () => document.body.classList.contains(id)
 
 let scrolledToLastPlayed = false
-// the row marked on load, with Beatport's playing marker so the outline and the A/Z keys treat it as
-// current; Beatport only clears the marker from rows it set it on, so a play clears it here
+// the row marked on load; a play moves the class on (highlight-played-item.ts), the toggle takes it off
 let markedRow: Element | null = null
 
 const storedLastPlayedId = async () => {
@@ -35,13 +34,11 @@ const scrollToLastPlayed = async () => {
   mutationObserver.disconnect()
   markedRow = element.closest(`.${rowClass}`)
   markedRow?.classList.add(rowActiveClass)
-  markedRow?.setAttribute(rowPlayingAttribute, 'true')
-  const { top } = getOffset(element, document.body)
-  if (top) {
-    window.scrollTo({
-      top: top - window.innerHeight / 2,
-      behavior: 'smooth'
-    })
+  // Beatport renders lists on the server, so the row is there before the page finished loading, and
+  // until then the browser restores the scroll position of the last visit over any scroll of ours
+  await waitUntil(() => document.readyState === 'complete', 30_000)
+  if (enabled()) {
+    markedRow?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   }
 }
 
@@ -60,7 +57,6 @@ const storePlayedTrack = async (event: Event) => {
   const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
   scrolledToLastPlayed = true
-  markedRow?.removeAttribute(rowPlayingAttribute)
   markedRow = null
   const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
   const lastPlayedReleases = await getLastPlayedReleases()
@@ -186,7 +182,6 @@ export const rememberLastPlayed: ContentFeature = {
       scrollToLastPlayed()
     } else {
       markedRow?.classList.remove(rowActiveClass)
-      markedRow?.removeAttribute(rowPlayingAttribute)
       markedRow = null
     }
   }

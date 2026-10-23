@@ -1,9 +1,10 @@
 import { ids } from './index'
 import type { ContentFeature } from './types'
-import { playButtonSelector, rowClass, rowPlayingSelector } from './selectors'
+import { playButtonSelector, rowActiveClass, rowClass, rowPlayingSelector } from './selectors'
 import { findSiblingElementsByClasses } from '../assets/scripts/utils/dom'
 
-// A plays the previous track, Z the next one, relative to the row Beatport marks as playing.
+// A plays the previous track, Z the next one, relative to the row Beatport marks as playing, or,
+// paused or stopped, the row that played last (highlight-played-item.ts keeps the class on it).
 const id = ids.keyboardPlayback
 
 const playNextOrPrevious = (event: KeyboardEvent) => {
@@ -14,7 +15,7 @@ const playNextOrPrevious = (event: KeyboardEvent) => {
   if (!document.body.classList.contains(id)) {
     return
   }
-  const currentRow = document.querySelector(rowPlayingSelector)
+  const currentRow = document.querySelector(rowPlayingSelector) ?? document.querySelector(`.${rowClass}.${rowActiveClass}`)
   const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow, [rowClass])
   if (event.key === 'z') {
     nextElement?.querySelector<HTMLButtonElement>(playButtonSelector)?.click()
