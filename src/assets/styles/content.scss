@@ -36,8 +36,21 @@
     vertical-align: baseline;
   }
 
-  // list tables: content.ts puts the attribute on the title cell, a flex row whose title text takes
-  // the free space, so the chip after it sits at the right edge and the codes of all rows form one column
+  // list tables: content.ts puts the attribute on the info column of the row (its title and artist
+  // lines), the chip pinned to the column's right edge and centered on that block, which the fixed-
+  // height row centers in turn, so the codes of all rows form one column down the middle of the list
+  [class*='InfoColumn'][data-bp-camelot] {
+    position: relative;
+    padding-right: 4em;
+
+    &::after {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      margin-left: 0;
+      transform: translateY(-50%);
+    }
+  }
 
   @for $n from 1 through 12 {
     [data-bp-camelot='#{$n}A'],

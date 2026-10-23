@@ -17,7 +17,10 @@ const trackRow = (id: string, current: boolean, key: string) => `
         onclick="document.querySelector('.row[data-active]')?.removeAttribute('data-active');this.closest('.row').setAttribute('data-active', 'true');this.dataset.played=1"></button>
     </div>
     <div class="DetailsCell-style__Stylized-sc-x">
-      <div class="DetailsCell-style__Title-sc-x" style="display: flex"><span class="DetailsCell-style__TitleText-sc-x" style="flex: 1"><a class="DetailsCell-style__TitleLink-sc-x" href="/track/track-${id}/${id}">Track ${id}</a></span></div>
+      <div class="DetailsCell-style__InfoColumn-sc-x">
+        <div class="DetailsCell-style__Title-sc-x" style="display: flex"><span class="DetailsCell-style__TitleText-sc-x" style="flex: 1"><a class="DetailsCell-style__TitleLink-sc-x" href="/track/track-${id}/${id}">Track ${id}</a></span></div>
+        <div class="DetailsCell-style__Text-sc-x">Artist ${id}</div>
+      </div>
     </div>
     <div class="MetaCell-style__Stylized-sc-x"><div class="MetaCell-style__MetaDataColumn-sc-x">86</div><div class="MetaCell-style__MetaDataColumn-sc-x">${key}</div></div>
   </div>`
@@ -387,8 +390,8 @@ test('filter box in the add-to-playlist picker narrows the list as you type', as
 test('shows wheel-colored Camelot codes next to every key, toggle hides them', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
-  // in lists the code is read from the key column but the chip goes on the title cell, one column for all rows
-  const keyCell = (row: number) => rows(page).nth(row).locator('[class*="__Title-sc-"]')
+  // in lists the code is read from the key column but the chip goes on the info column, one column for all rows
+  const keyCell = (row: number) => rows(page).nth(row).locator('[class*="InfoColumn"]')
   const chip = (locator: ReturnType<typeof keyCell>) =>
     locator.evaluate(el => [getComputedStyle(el, '::after').content, getComputedStyle(el).getPropertyValue('--bp-camelot-hue').trim()])
 
@@ -396,6 +399,7 @@ test('shows wheel-colored Camelot codes next to every key, toggle hides them', a
   await expect(keyCell(1)).toHaveAttribute('data-bp-camelot', '3A')
   await expect(keyCell(2)).toHaveAttribute('data-bp-camelot', '5B')
   await expect(rows(page).nth(0).locator('[class*="MetaDataColumn"][data-bp-camelot]'), 'the bpm and key cells themselves stay clean').toHaveCount(0)
+  expect(await keyCell(0).evaluate(el => getComputedStyle(el, '::after').position), 'chip pinned and centered on the row, not inline on the title line').toBe('absolute')
   await expect(page.locator('[class*="metaItem"]:has-text("Key:") > span'), 'track detail key').toHaveAttribute('data-bp-camelot', '11A')
   await expect(page.locator('[class*="metaItem"]:has-text("BPM:") > span'), 'track detail bpm').not.toHaveAttribute('data-bp-camelot', /./)
   await expect(page.locator('#bp-player p').nth(1), 'player key').toHaveAttribute('data-bp-camelot', '8A')

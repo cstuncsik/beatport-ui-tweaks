@@ -9,8 +9,9 @@ import { camelotFromKeyText } from '../assets/scripts/utils/musical'
 const id = ids.camelotKey
 const camelotAttribute = 'data-bp-camelot'
 
-// the title cell is a flex row whose title text takes the free space, so the chip after it sits at the right edge
-const listChipTargetSelector = '[class*="__Title-sc-"]'
+// the info column wraps the title and artist lines, so the chip, centered on it and pinned to its right
+// edge, sits in the middle of the row and lines up into one column down the list
+const listChipTargetSelector = '[class*="InfoColumn"]'
 
 const chipTarget = (keyElement: Element): Element => keyElement.closest('.row')?.querySelector(listChipTargetSelector) ?? keyElement
 
