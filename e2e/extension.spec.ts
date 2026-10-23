@@ -145,9 +145,17 @@ test('remembers the last played track and highlights it after reload', async ({ 
 })
 
 test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
-  // Stand-in for the catalog API: 400 tracks newest first, three release days. Track 320 is the 70th
-  // of its day, 250 newer tracks precede it, so with 150 per page it sits on page 3.
-  const catalog = Array.from({ length: 400 }, (_, i) => ({ id: i + 1, publish_date: i < 100 ? '2026-10-10' : i < 250 ? '2026-10-09' : '2026-10-08' }))
+  // Two orderings of the same 900 tracks: the list sorts by release date (listOrder, what a page
+  // shows), the search estimates the position by publish date (catalog, newest published first). The
+  // two drift apart, so the estimated page is not the real one. Track 801 is published 800th, which
+  // puts the estimate on page 6, but by release order it sits on page 3: the search has to scan there.
+  const catalog = Array.from({ length: 900 }, (_, i) => ({
+    id: i + 1,
+    publish_date: new Date(Date.UTC(2026, 9, 10) - i * 86_400_000).toISOString().slice(0, 10)
+  }))
+  const target = catalog[800]
+  const listOrder = catalog.filter(track => track.id !== target.id)
+  listOrder.splice(320, 0, target)
   const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization', 'access-control-allow-methods': 'GET, OPTIONS' }
   const tokens: (string | undefined)[] = []
   await page.route('https://api.beatport.com/v4/**', route => {
@@ -161,14 +169,13 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
     if (detail) {
       return route.fulfill({ json: catalog.find(track => track.id === Number(detail[1])), headers: cors })
     }
-    let results = catalog
-    const range = url.searchParams.get('publish_date')
-    if (range) {
-      const [from, to] = range.split(':')
-      results = results.filter(track => track.publish_date >= from && track.publish_date <= to)
-    }
     const pageNumber = Number(url.searchParams.get('page') ?? 1)
     const perPage = Number(url.searchParams.get('per_page') ?? 25)
+    // with a publish_date range the search counts the position; without it, a real list page by release order
+    const range = url.searchParams.get('publish_date')
+    const results = range
+      ? catalog.filter(track => track.publish_date >= range.split(':')[0] && track.publish_date <= range.split(':')[1])
+      : listOrder
     return route.fulfill({ json: { count: results.length, results: results.slice((pageNumber - 1) * perPage, pageNumber * perPage) }, headers: cors })
   })
 
@@ -181,10 +188,11 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
   await expect(image, 'icon served from the extension').toHaveAttribute('src', /^chrome-extension:\/\//)
   await expect.poll(() => image.evaluate(img => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth), 'icon loads').toBe(36)
 
-  await worker.evaluate(() => chrome.storage.sync.set({ 'beatport-last-played': { techno: { tracks: '320' } } }))
+  await worker.evaluate(id => chrome.storage.sync.set({ 'beatport-last-played': { techno: { tracks: id } } }), String(target.id))
   await page.reload()
   await expect(buttons.first()).toHaveAttribute('data-state', '')
   await buttons.last().click()
+  // the estimate is page 6, the track is on page 3: the search scans past the old two-page window to reach it
   await page.waitForURL(/\/genre\/techno\/6\/tracks\?page=3&per_page=150$/)
   expect(tokens[0], 'the anonymous token from the page').toBe('Bearer anon-token')
 

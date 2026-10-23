@@ -5,6 +5,8 @@ const apiBase = 'https://api.beatport.com/v4'
 const defaultOrder = '-release_date,release_id'
 const countCap = 10000
 const dayPageSize = 150
+// how far each side of the estimate the scan looks before giving up, in list pages
+const maxVerifyPages = 40
 
 export type ListParams = Record<string, string | number | boolean>
 export type Found = { page: number } | { reason: 'unreachable' | 'not-found' }
@@ -93,16 +95,33 @@ export const findTrackPage = async (id: string, params: ListParams, perPage: num
     }
   }
   if (position >= countCap) {
+    console.warn('Beatport UI Tweaks: "Last played" track is past the 10000-row cap', { id, date, newer: after.count, position })
     return { reason: 'unreachable' }
   }
-  // the list sorts by release date but filters by publish date, and the two differ for some tracks,
-  // so the page is checked before anyone navigates
-  const estimate = Math.floor(position / perPage) + 1
-  for (const page of [estimate, estimate + 1, estimate - 1, estimate + 2, estimate - 2].filter(page => page >= 1)) {
-    const listing = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: perPage }, token)
-    if (listing.results.some(track => String(track.id) === id)) {
-      return { page }
+  // The position is an estimate: the list sorts by release date, the count is by publish date, and the
+  // two drift apart by pages this deep (seen 11 pages at position 5766). So the estimated page is a
+  // starting point, not the answer; scan outward from it one page at a time until the track turns up.
+  // ponytail: linear scan, up to maxVerifyPages fetches each side. If the drift ever outgrows that,
+  // count by release date instead of publish date (needs the catalog API to filter on release date).
+  const estimate = Math.max(1, Math.floor(position / perPage) + 1)
+  const onPage = (listing: Listing) => listing.results.some(track => String(track.id) === id)
+  const start = await api<Listing>('/catalog/tracks/', { ...params, page: estimate, per_page: perPage }, token)
+  if (onPage(start)) {
+    return { page: estimate }
+  }
+  const lastPage = Math.max(1, Math.ceil(Math.min(start.count, countCap) / perPage))
+  for (let step = 1; step <= maxVerifyPages; step++) {
+    const pages = [estimate - step, estimate + step].filter(page => page >= 1 && page <= lastPage)
+    if (!pages.length) {
+      break
+    }
+    for (const page of pages) {
+      const listing = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: perPage }, token)
+      if (onPage(listing)) {
+        return { page }
+      }
     }
   }
+  console.warn('Beatport UI Tweaks: "Last played" search did not reach the track', { id, date, newer: after.count, position, estimate, lastPage, perPage })
   return { reason: 'not-found' }
 }
