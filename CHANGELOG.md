@@ -2,6 +2,10 @@
 
 What changed in each version of Beatport UI Tweaks. Newest first, dates are release dates.
 
+## 2.6.3 (2026-10-23)
+
+- Fixed: works with the tracks table Beatport rolled out on October 22, 2026. It had broken every list feature: remember last played, the "Last played" button, highlight playing track, the A/Z keys and the Camelot column. Keys in the new table are abbreviated ("F Maj"), the Camelot code reads them too.
+
 ## 2.6.2 (2026-10-14)
 
 - Fixed: "Highlight playing track" follows Beatport's own marker now, so a track Beatport starts by itself after the previous one ended is outlined too, in lists and playlists, and at load without a click.
