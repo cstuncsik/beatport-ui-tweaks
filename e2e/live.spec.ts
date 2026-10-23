@@ -38,10 +38,16 @@ test('the extension still works on a live Beatport tracks list', async ({ page, 
   const trackId = await second.locator('a[class*="TitleLink"]').first().evaluate(a => a.href.split('/').pop())
   await second.locator('button[aria-label="Play"]').first().click()
   await expect(second, 'Beatport marks the playing row').toHaveAttribute('data-active', 'true', { timeout: 15_000 })
-  await expect.poll(() => second.evaluate(el => getComputedStyle(el).borderTopColor), { message: 'extension outlines the playing row', timeout: 15_000 }).toBe('rgb(1, 255, 149)')
+  await expect.poll(() => second.evaluate(el => getComputedStyle(el).outlineColor), { message: 'extension outlines the playing row', timeout: 15_000 }).toBe('rgb(1, 255, 149)')
   await expect
     .poll(() => worker.evaluate(() => chrome.storage.sync.get('beatport-last-played')), { message: 'last played stored' })
     .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { tracks: trackId } } })
+
+  // pause: Beatport's own outline goes with its marker, the extension's stays on the row
+  await second.locator('button[aria-label="Pause"]').first().click()
+  await expect(second.locator('button[aria-label="Play"]'), 'paused').toHaveCount(1, { timeout: 15_000 })
+  console.log(`data-active after the pause: ${await second.getAttribute('data-active')}`)
+  expect(await second.evaluate(el => getComputedStyle(el).outlineColor), 'outline survives the pause').toBe('rgb(1, 255, 149)')
 
   await expect
     .poll(() => page.locator('.row [data-bp-camelot]').count(), { message: 'Camelot codes on the title cells' })
