@@ -1,0 +1,23 @@
+src/features/camelot-key.ts
+  s_9f320dbc77759e::t_c033dafdd0885f 12-14
+e2e/extension.spec.ts
+  s_9f320dbc77759e::t_c033dafdd0885f 20-23,393-394,402
+src/assets/styles/content.scss
+  s_9f320dbc77759e::t_c033dafdd0885f 39-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d539d9913c5a85a208db609934053a2d97fd816d",
+  "prompts": {},
+  "sessions": {
+    "s_9f320dbc77759e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f894a99f-0faf-4ddb-9fbb-d3fbf7f525b2",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
