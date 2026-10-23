@@ -1,0 +1,24 @@
+e2e/extension.spec.ts
+  s_9f320dbc77759e::t_67cbf1581eb252 148-158,174-178,191,195
+CHANGELOG.md
+  s_9f320dbc77759e::t_67cbf1581eb252 10
+src/assets/scripts/utils/beatport-api.ts
+  s_9f320dbc77759e::t_67cbf1581eb252 8-9,101-122,125
+  s_9f320dbc77759e::t_9c23aa946dd7b4 98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beae97351d1a2808aae833a26d23411b2359e1e5",
+  "prompts": {},
+  "sessions": {
+    "s_9f320dbc77759e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f894a99f-0faf-4ddb-9fbb-d3fbf7f525b2",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
