@@ -7,6 +7,7 @@ What changed in each version of Beatport UI Tweaks. Newest first, dates are rele
 - Fixed: works with the tracks table Beatport rolled out on October 22, 2026. It had broken every list feature: remember last played, the "Last played" button, highlight playing track, the A/Z keys and the Camelot column. Keys in the new table are abbreviated ("F Maj"), the Camelot code reads them too.
 - Fixed: the outline stays on the track you paused or stopped. Beatport draws the same outline itself now, but only while the track plays.
 - Fixed: the scroll to the remembered track on a reload. Beatport renders lists on the server now, so the scroll ran before the page had finished loading and got lost; it waits for the load now.
+- Fixed: coming back to a list with the browser Back button scrolls to the remembered track too, not only a fresh load. Beatport does not restore the scroll position itself.
 - Fixed: the "Last played" button reaches tracks deep in a list. The page it guessed could be about ten pages off this far down, and it only looked two pages around the guess; it scans out to the track now.
 
 ## 2.6.2 (2026-10-14)

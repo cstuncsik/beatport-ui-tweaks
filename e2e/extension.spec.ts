@@ -147,6 +147,27 @@ test('remembers the last played track and highlights it after reload', async ({ 
   await expect(rows(page).nth(1), 'on: marked again').toHaveClass(/bp-ui-tweak-last-played__active/)
 })
 
+test('scrolls to the remembered track again when you come back to the list', async ({ page, worker }) => {
+  await visitTrackList(page)
+  await worker.evaluate(() => chrome.storage.sync.set({ 'beatport-last-played': { techno: { 'top-100': '222' } } }))
+  await page.reload()
+  await expect(page.locator('body')).toHaveClass(/bp-ui-tweak-remember-last-played/)
+  // room above the list so a scroll to the remembered row is observable
+  await page.locator('#list').evaluate(list => list.insertAdjacentHTML('beforebegin', '<div style="height: 3000px"></div>'))
+  await renderRows(page, ['111', '222', '333'])
+  await expect(rows(page).nth(1), 'marked on load').toHaveClass(/bp-ui-tweak-last-played__active/)
+
+  // leave for a track page and come back with browser Back: a history pop in the same document, no reload
+  await page.evaluate(() => scrollTo(0, 0))
+  await rows(page).nth(1).evaluate(row => row.classList.remove('bp-ui-tweak-last-played__active'))
+  await page.evaluate(() => {
+    history.pushState({}, '', '/track/some-track/222')
+    history.back()
+  })
+  await expect(rows(page).nth(1), 'marked again after Back').toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect.poll(() => page.evaluate(() => scrollY), { message: 'scrolled to it again' }).toBeGreaterThan(1000)
+})
+
 test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
   // Two orderings of the same 900 tracks: the list sorts by release date (listOrder, what a page
   // shows), the search estimates the position by publish date (catalog, newest published first). The
