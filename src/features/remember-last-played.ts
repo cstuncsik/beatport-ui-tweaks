@@ -24,7 +24,11 @@ const scrollToLastPlayed = async () => {
   if (!enabled() || scrolledToLastPlayed) {
     return
   }
-  const { element } = await waitUntilElementIsVisible(`${playedItemBaseSelector}[href$="/${await storedLastPlayedId()}"]`)
+  const trackId = await storedLastPlayedId()
+  if (!trackId) {
+    return
+  }
+  const { element } = await waitUntilElementIsVisible(`${playedItemBaseSelector}[href$="/${trackId}"]`)
   // every DOM change starts one of these, so by now another one may have finished the job, or the
   // feature may have been switched off while waiting
   if (!element || !enabled() || scrolledToLastPlayed) {
@@ -43,6 +47,15 @@ const scrollToLastPlayed = async () => {
 }
 
 const mutationObserver = new MutationObserver(scrollToLastPlayed)
+
+// Arm the scroll: run it now and keep the observer watching until the row is found. Used on load,
+// on the toggle, and when the list comes back without a reload (history back, or a back/forward-
+// cache restore), which is when Beatport re-renders the list but does not restore the scroll.
+const armScrollToLastPlayed = () => {
+  scrolledToLastPlayed = false
+  mutationObserver.observe(document.body, { childList: true, subtree: true })
+  scrollToLastPlayed()
+}
 
 const storePlayedTrack = async (event: Event) => {
   if (!enabled()) {
@@ -173,13 +186,25 @@ const syncLastPlayedButtons = observeWhileEnabled(id, ensureLastPlayedButtons, r
 
 export const rememberLastPlayed: ContentFeature = {
   id,
-  start: () => document.body.addEventListener('click', storePlayedTrack, true),
+  start: () => {
+    document.body.addEventListener('click', storePlayedTrack, true)
+    // Beatport is a SPA and does not restore the scroll position: coming back to a list (history back,
+    // or a restore from the back/forward cache) re-renders it without reloading, so arm the scroll again
+    window.addEventListener('popstate', () => {
+      if (enabled()) {
+        armScrollToLastPlayed()
+      }
+    })
+    window.addEventListener('pageshow', event => {
+      if (event.persisted && enabled()) {
+        armScrollToLastPlayed()
+      }
+    })
+  },
   toggle: enabled => {
     syncLastPlayedButtons()
     if (enabled) {
-      scrolledToLastPlayed = false
-      mutationObserver.observe(document.body, { childList: true, subtree: true })
-      scrollToLastPlayed()
+      armScrollToLastPlayed()
     } else {
       markedRow?.classList.remove(rowActiveClass)
       markedRow = null
