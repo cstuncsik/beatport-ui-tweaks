@@ -1,0 +1,38 @@
+src/assets/styles/content.scss
+  s_9f320dbc77759e::t_d7c318d83ba146 3-5,8,36-37
+e2e/live.spec.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 33-35,38-40,47,49,52-53,72
+src/features/selectors.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 1-2,5-9
+src/assets/scripts/utils/musical.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 24,26,32
+e2e/extension.spec.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 6-11,14-22,109,141-142,145,205,209,211-212,226-227,229,231,358,373-374,381
+src/features/content.ts
+  s_9f320dbc77759e::t_238d80616ef789 8
+src/manifest.json
+  s_9f320dbc77759e::t_d7c318d83ba146 4
+src/features/camelot-key.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 12-15,18-19,37
+src/features/remember-last-played.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 3,15-16,37-38,55,63,128,188-189
+  s_9f320dbc77759e::t_5521c74a300b73 140-141
+src/features/keyboard-playback.ts
+  s_9f320dbc77759e::t_d7c318d83ba146 3,17,20,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "476cc28900d946071784592c4111007f57b3d83c",
+  "prompts": {},
+  "sessions": {
+    "s_9f320dbc77759e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f894a99f-0faf-4ddb-9fbb-d3fbf7f525b2",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
