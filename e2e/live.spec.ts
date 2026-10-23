@@ -30,27 +30,27 @@ test('the extension still works on a live Beatport tracks list', async ({ page, 
     await expect(page.locator('body')).toHaveClass(new RegExp(id))
   }
 
-  const trackRows = rows.filter({ has: page.locator('button[data-testid="play-button"]') })
-  expect(await trackRows.count(), 'track rows with a play button').toBeGreaterThan(10)
-  expect(await trackRows.locator('.cell.title a[href*="/track/"]').count(), 'track links inside rows').toBeGreaterThan(10)
+  const trackRows = rows.filter({ has: page.locator('a[class*="TitleLink"]') })
+  expect(await trackRows.count(), 'track rows with a title link').toBeGreaterThan(10)
+  expect(await trackRows.locator('button[aria-label="Play"]').count(), 'play buttons inside rows').toBeGreaterThan(10)
 
   const second = trackRows.nth(1)
-  const trackId = await second.locator('.cell.title a[href*="/track/"]').first().evaluate(a => a.href.split('/').pop())
-  await second.locator('button[data-testid="play-button"]').first().click()
-  await expect(second, 'Beatport marks the playing row').toHaveClass(/current/, { timeout: 15_000 })
+  const trackId = await second.locator('a[class*="TitleLink"]').first().evaluate(a => a.href.split('/').pop())
+  await second.locator('button[aria-label="Play"]').first().click()
+  await expect(second, 'Beatport marks the playing row').toHaveAttribute('data-active', 'true', { timeout: 15_000 })
   await expect.poll(() => second.evaluate(el => getComputedStyle(el).borderTopColor), { message: 'extension outlines the playing row', timeout: 15_000 }).toBe('rgb(1, 255, 149)')
   await expect
     .poll(() => worker.evaluate(() => chrome.storage.sync.get('beatport-last-played')), { message: 'last played stored' })
     .toEqual({ 'beatport-last-played': { 'techno-peak-time-driving': { tracks: trackId } } })
 
   await expect
-    .poll(() => page.locator('.cell.title[data-bp-camelot]').count(), { message: 'Camelot codes on the title column' })
+    .poll(() => page.locator('.row [data-bp-camelot]').count(), { message: 'Camelot codes on the title cells' })
     .toBeGreaterThan(10)
-  expect(await page.locator('.cell.title[data-bp-camelot]').first().getAttribute('data-bp-camelot')).toMatch(/^(1[0-2]|[1-9])[AB]$/)
+  expect(await page.locator('.row [data-bp-camelot]').first().getAttribute('data-bp-camelot')).toMatch(/^(1[0-2]|[1-9])[AB]$/)
 
   await page.keyboard.press('z')
-  await expect(trackRows.nth(2), 'z plays the next track').toHaveClass(/current/, { timeout: 15_000 })
-  const lastPlayedId = await trackRows.nth(2).locator('.cell.title a[href*="/track/"]').first().evaluate(a => a.href.split('/').pop())
+  await expect(trackRows.nth(2), 'z plays the next track').toHaveAttribute('data-active', 'true', { timeout: 15_000 })
+  const lastPlayedId = await trackRows.nth(2).locator('a[class*="TitleLink"]').first().evaluate(a => a.href.split('/').pop())
 
   const pills = page.locator('.bp-ui-tweak-last-played-button')
   await expect(pills, '"Last played" pill in both pager rows').toHaveCount(2)
@@ -69,5 +69,5 @@ test('the extension still works on a live Beatport tracks list', async ({ page, 
     console.log('::warning::Live check: Cloudflare challenged the page the "Last played" search landed on')
     return
   }
-  await expect(page.locator(`.row:has(.cell.title a[href$="/${lastPlayedId}"])`), 'landed on the played track').toHaveClass(/bp-ui-tweak-last-played__active/, { timeout: 15_000 })
+  await expect(page.locator(`.row:has(a[class*="TitleLink"][href$="/${lastPlayedId}"])`), 'landed on the played track').toHaveClass(/bp-ui-tweak-last-played__active/, { timeout: 15_000 })
 })

@@ -1,6 +1,6 @@
 import { ids } from './index'
 import type { ContentFeature } from './types'
-import { playedItemBaseSelector, playOrReplayButtonSelector, rowActiveClass, rowActiveClassOriginal, rowClass } from './selectors'
+import { playedItemBaseSelector, playButtonSelector, rowActiveClass, rowClass, rowPlayingAttribute } from './selectors'
 import { getOffset, observeWhileEnabled, waitUntilElementIsVisible } from '../assets/scripts/utils/dom'
 import { getGenreOrArtistAndTypeFromUrl } from '../assets/scripts/utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from '../assets/scripts/utils/chrome'
@@ -12,7 +12,8 @@ const id = ids.rememberLastPlayed
 const enabled = () => document.body.classList.contains(id)
 
 let scrolledToLastPlayed = false
-// the row marked on load; Beatport owns its "current" class again as soon as something is played
+// the row marked on load, with Beatport's playing marker so the outline and the A/Z keys treat it as
+// current; Beatport only clears the marker from rows it set it on, so a play clears it here
 let markedRow: Element | null = null
 
 const storedLastPlayedId = async () => {
@@ -33,7 +34,8 @@ const scrollToLastPlayed = async () => {
   scrolledToLastPlayed = true
   mutationObserver.disconnect()
   markedRow = element.closest(`.${rowClass}`)
-  markedRow?.classList.add(rowActiveClass, rowActiveClassOriginal)
+  markedRow?.classList.add(rowActiveClass)
+  markedRow?.setAttribute(rowPlayingAttribute, 'true')
   const { top } = getOffset(element, document.body)
   if (top) {
     window.scrollTo({
@@ -50,7 +52,7 @@ const storePlayedTrack = async (event: Event) => {
     return
   }
   const target = event.target as HTMLElement
-  const playButton = target.matches(playOrReplayButtonSelector) ? target : target.closest(playOrReplayButtonSelector)
+  const playButton = target.matches(playButtonSelector) ? target : target.closest(playButtonSelector)
   if (!playButton) {
     return
   }
@@ -58,6 +60,7 @@ const storePlayedTrack = async (event: Event) => {
   const releaseId = row?.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop()
 
   scrolledToLastPlayed = true
+  markedRow?.removeAttribute(rowPlayingAttribute)
   markedRow = null
   const { genreOrArtist, type } = getGenreOrArtistAndTypeFromUrl()
   const lastPlayedReleases = await getLastPlayedReleases()
@@ -122,7 +125,7 @@ const goToLastPlayed = async () => {
     return
   }
   const url = new URL(location.href)
-  const perPage = Number(url.searchParams.get('per_page')) || document.querySelectorAll(`.${rowClass} ${playOrReplayButtonSelector}`).length || 25
+  const perPage = Number(url.searchParams.get('per_page')) || document.querySelectorAll(playedItemBaseSelector).length || 25
   setLastPlayedButtons('Searching…', 'busy')
   try {
     const token = await accessToken()
@@ -134,7 +137,8 @@ const goToLastPlayed = async () => {
     } else {
       flashLastPlayedButtons(found.reason === 'unreachable' ? 'Too far back' : 'Not found')
     }
-  } catch {
+  } catch (error) {
+    console.warn('Beatport UI Tweaks: the "Last played" search failed', error)
     flashLastPlayedButtons('Search failed')
   }
 }
@@ -181,7 +185,8 @@ export const rememberLastPlayed: ContentFeature = {
       mutationObserver.observe(document.body, { childList: true, subtree: true })
       scrollToLastPlayed()
     } else {
-      markedRow?.classList.remove(rowActiveClass, rowActiveClassOriginal)
+      markedRow?.classList.remove(rowActiveClass)
+      markedRow?.removeAttribute(rowPlayingAttribute)
       markedRow = null
     }
   }

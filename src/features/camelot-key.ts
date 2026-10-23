@@ -9,12 +9,14 @@ import { camelotFromKeyText } from '../assets/scripts/utils/musical'
 const id = ids.camelotKey
 const camelotAttribute = 'data-bp-camelot'
 
-const chipTarget = (keyElement: Element): Element =>
-  keyElement.matches('.cell.bpm > div') ? (keyElement.closest('.row')?.querySelector('.cell.title') ?? keyElement) : keyElement
+// the title cell is a flex row whose title text takes the free space, so the chip after it sits at the right edge
+const listChipTargetSelector = '[class*="__Title-sc-"]'
+
+const chipTarget = (keyElement: Element): Element => keyElement.closest('.row')?.querySelector(listChipTargetSelector) ?? keyElement
 
 const camelotKeyElements = (): Element[] => [
-  // list tables on genre, chart, release and track pages: "86 BPM - D Minor", annotated rows are skipped
-  ...[...document.querySelectorAll('.cell.bpm > div')].filter(div => !chipTarget(div).hasAttribute(camelotAttribute)),
+  // list tables on genre, chart, release and track pages: BPM and key columns, "128" and "F Maj", annotated rows are skipped
+  ...[...document.querySelectorAll('.row [class*="MetaDataColumn"]')].filter(div => !chipTarget(div).hasAttribute(camelotAttribute)),
   // track detail meta: <div>Key:</div><span>D Minor</span>
   ...[...document.querySelectorAll('[class*="metaItem"] > *')]
     .filter(label => label.textContent?.trim() === 'Key:')
@@ -32,7 +34,7 @@ const annotateCamelotKeys = () => {
         target.setAttribute(camelotAttribute, code)
       }
     } else if (target === element) {
-      // a row's genre line has no key either, that must not strip the chip its key line put on the title cell
+      // a row's BPM column has no key either, that must not strip the chip its key column put on the title cell
       target.removeAttribute(camelotAttribute)
     }
   })

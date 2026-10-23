@@ -1,6 +1,6 @@
 import { ids } from './index'
 import type { ContentFeature } from './types'
-import { playOrReplayButtonSelector, rowActiveClassOriginal, rowClass } from './selectors'
+import { playButtonSelector, rowClass, rowPlayingSelector } from './selectors'
 import { findSiblingElementsByClasses } from '../assets/scripts/utils/dom'
 
 // A plays the previous track, Z the next one, relative to the row Beatport marks as playing.
@@ -14,13 +14,13 @@ const playNextOrPrevious = (event: KeyboardEvent) => {
   if (!document.body.classList.contains(id)) {
     return
   }
-  const currentRow = document.querySelector(`.${rowClass}.${rowActiveClassOriginal}`)
+  const currentRow = document.querySelector(rowPlayingSelector)
   const { prevElement, nextElement } = findSiblingElementsByClasses(currentRow, [rowClass])
   if (event.key === 'z') {
-    nextElement?.querySelector<HTMLButtonElement>(playOrReplayButtonSelector)?.click()
+    nextElement?.querySelector<HTMLButtonElement>(playButtonSelector)?.click()
   }
   if (event.key === 'a') {
-    prevElement?.querySelector<HTMLButtonElement>(playOrReplayButtonSelector)?.click()
+    prevElement?.querySelector<HTMLButtonElement>(playButtonSelector)?.click()
   }
 }
 

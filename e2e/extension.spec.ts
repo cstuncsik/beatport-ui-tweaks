@@ -3,20 +3,23 @@ import type { Page, Worker } from '@playwright/test'
 
 const siteUrl = 'https://www.beatport.com/genre/techno/6/top-100'
 
-// Stand-in for a Beatport track list. The content script relies on .row, .cell.title a[href]
-// and button[data-testid="play-button"]. Like the real site (a SPA) rows are rendered after
-// load, which is also what wakes the extension's MutationObserver. Clicking play marks the
-// row as .current, as Beatport's player does.
-const keys = ['D Minor', 'Bb Minor', 'Eb Major']
+// Stand-in for a Beatport track list, the styled-components table of October 2026. The content
+// script relies on .row, a[class*="TitleLink"], button[aria-label="Play"] and the BPM and key
+// [class*="MetaDataColumn"] cells. Like the real site (a SPA) rows are rendered after load, which
+// is also what wakes the extension's MutationObserver. Clicking play marks the row with
+// data-active="true", as Beatport's player does.
+const keys = ['D Min', 'Bb Min', 'Eb Maj']
 
 const trackRow = (id: string, current: boolean, key: string) => `
-  <div class="row${current ? ' current' : ''}">
-    <div class="cell title"><a href="/release/track-${id}/${id}">Track ${id}</a></div>
-    <div class="cell bpm"><div>Drum &amp; Bass</div><div>86 BPM - ${key}</div></div>
-    <button data-testid="play-button"
-      onclick="document.querySelector('.row.current')?.classList.remove('current');this.closest('.row').classList.add('current');this.dataset.played=1">
-      play
-    </button>
+  <div class="Row-style__Stylized-sc-x row"${current ? ' data-active="true"' : ''}>
+    <div class="ArtCell-style__Stylized-sc-x">
+      <button type="button" class="ArtCell-style__ArtOverlayIcon-sc-x" aria-label="Play"
+        onclick="document.querySelector('.row[data-active]')?.removeAttribute('data-active');this.closest('.row').setAttribute('data-active', 'true');this.dataset.played=1"></button>
+    </div>
+    <div class="DetailsCell-style__Stylized-sc-x">
+      <div class="DetailsCell-style__Title-sc-x" style="display: flex"><span class="DetailsCell-style__TitleText-sc-x" style="flex: 1"><a class="DetailsCell-style__TitleLink-sc-x" href="/track/track-${id}/${id}">Track ${id}</a></span></div>
+    </div>
+    <div class="MetaCell-style__Stylized-sc-x"><div class="MetaCell-style__MetaDataColumn-sc-x">86</div><div class="MetaCell-style__MetaDataColumn-sc-x">${key}</div></div>
   </div>`
 
 // Beatport renders the list's API query and an anonymous API token into __NEXT_DATA__, and a pager
@@ -103,7 +106,7 @@ test('content script initializes and receives the enabled features', async ({ pa
 test('remembers the last played track and highlights it after reload', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
-  await rows(page).nth(1).getByTestId('play-button').click()
+  await rows(page).nth(1).getByRole('button', { name: 'Play' }).click()
   await expect
     .poll(() => worker.evaluate(() => chrome.storage.sync.get('beatport-last-played')))
     .toEqual({ 'beatport-last-played': { techno: { 'top-100': '222' } } })
@@ -135,10 +138,11 @@ test('remembers the last played track and highlights it after reload', async ({ 
   await expect(page.locator('.bp-ui-tweak-last-played__active'), 'no second mark').toHaveCount(marked)
 
   await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', false)
-  await expect(rows(page).nth(1), 'off: the row is as Beatport rendered it').not.toHaveClass(/bp-ui-tweak-last-played__active|current/)
+  await expect(rows(page).nth(1), 'off: the row is as Beatport rendered it').not.toHaveClass(/bp-ui-tweak-last-played__active/)
+  await expect(rows(page).nth(1)).not.toHaveAttribute('data-active', /./)
   await toggleFeature(worker, 'bp-ui-tweak-remember-last-played', true)
   await expect(rows(page).nth(1), 'on: marked again').toHaveClass(/bp-ui-tweak-last-played__active/)
-  await expect(rows(page).nth(1)).toHaveClass(/current/)
+  await expect(rows(page).nth(1)).toHaveAttribute('data-active', 'true')
 })
 
 test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
@@ -198,14 +202,14 @@ test('outlines the row that is playing, also when Beatport moves on by itself', 
   const green = 'rgb(1, 255, 149)'
   const outline = (row: number) => rows(page).nth(row).evaluate(el => getComputedStyle(el).borderTopColor)
   await expect.poll(() => outline(0), 'the row playing at load').toBe(green)
-  await rows(page).nth(1).getByTestId('play-button').click()
+  await rows(page).nth(1).getByRole('button', { name: 'Play' }).click()
   await expect.poll(() => outline(1), 'the clicked row').toBe(green)
   expect(await outline(0), 'the previous one no more').not.toBe(green)
 
-  // a track ends and Beatport moves "current" to the next row without any click
+  // a track ends and Beatport moves its marker to the next row without any click
   await page.evaluate(() => {
-    document.querySelector('.row.current')?.classList.remove('current')
-    document.querySelector('.row')?.classList.add('current')
+    document.querySelector('.row[data-active]')?.removeAttribute('data-active')
+    document.querySelector('.row')?.setAttribute('data-active', 'true')
   })
   await expect.poll(() => outline(0), 'the row Beatport moved on to').toBe(green)
 
@@ -219,12 +223,12 @@ test('z and a keys play the next and previous track', async ({ page }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
   await page.keyboard.press('z')
-  await expect(rows(page).nth(1)).toHaveClass(/current/)
-  await expect(rows(page).nth(1).getByTestId('play-button')).toHaveAttribute('data-played', '1')
+  await expect(rows(page).nth(1)).toHaveAttribute('data-active', 'true')
+  await expect(rows(page).nth(1).getByRole('button', { name: 'Play' })).toHaveAttribute('data-played', '1')
   await page.keyboard.press('z')
-  await expect(rows(page).nth(2)).toHaveClass(/current/)
+  await expect(rows(page).nth(2)).toHaveAttribute('data-active', 'true')
   await page.keyboard.press('a')
-  await expect(rows(page).nth(1)).toHaveClass(/current/)
+  await expect(rows(page).nth(1)).toHaveAttribute('data-active', 'true')
 })
 
 test('recently used playlists lead the add-to-playlist list', async ({ page, worker }) => {
@@ -351,7 +355,7 @@ test('filter box in the add-to-playlist picker narrows the list as you type', as
   await expect(shown, 'every word has to match').toHaveText(['DnB dark club'])
   await input.press('z')
   await input.press('a')
-  await expect(rows(page).nth(0), 'typing does not drive the player').toHaveClass(/current/)
+  await expect(rows(page).nth(0), 'typing does not drive the player').toHaveAttribute('data-active', 'true')
   await input.fill('')
   await expect(shown).toHaveCount(5)
 
@@ -366,16 +370,15 @@ test('filter box in the add-to-playlist picker narrows the list as you type', as
 test('shows wheel-colored Camelot codes next to every key, toggle hides them', async ({ page, worker }) => {
   await visitTrackList(page)
   await renderRows(page, ['111', '222', '333'])
-  // in lists the code is read from the key line but the chip goes on the title cell, one column for all rows
-  const keyCell = (row: number) => rows(page).nth(row).locator('.cell.title')
+  // in lists the code is read from the key column but the chip goes on the title cell, one column for all rows
+  const keyCell = (row: number) => rows(page).nth(row).locator('[class*="__Title-sc-"]')
   const chip = (locator: ReturnType<typeof keyCell>) =>
     locator.evaluate(el => [getComputedStyle(el, '::after').content, getComputedStyle(el).getPropertyValue('--bp-camelot-hue').trim()])
 
   await expect(keyCell(0)).toHaveAttribute('data-bp-camelot', '7A')
   await expect(keyCell(1)).toHaveAttribute('data-bp-camelot', '3A')
   await expect(keyCell(2)).toHaveAttribute('data-bp-camelot', '5B')
-  await expect(rows(page).nth(0).locator('.cell.bpm > div[data-bp-camelot]'), 'the bpm cell itself stays clean').toHaveCount(0)
-  expect(await keyCell(0).evaluate(el => getComputedStyle(el, '::after').position), 'chip pinned to the cell edge').toBe('absolute')
+  await expect(rows(page).nth(0).locator('[class*="MetaDataColumn"][data-bp-camelot]'), 'the bpm and key cells themselves stay clean').toHaveCount(0)
   await expect(page.locator('[class*="metaItem"]:has-text("Key:") > span'), 'track detail key').toHaveAttribute('data-bp-camelot', '11A')
   await expect(page.locator('[class*="metaItem"]:has-text("BPM:") > span'), 'track detail bpm').not.toHaveAttribute('data-bp-camelot', /./)
   await expect(page.locator('#bp-player p').nth(1), 'player key').toHaveAttribute('data-bp-camelot', '8A')
