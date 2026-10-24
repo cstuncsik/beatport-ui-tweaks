@@ -1,0 +1,22 @@
+site/index.html
+  s_07099039113fe1::t_00313e542f71d2 302,304,321
+  s_07099039113fe1::t_a7339164e0ba60 1-301,303,305-320,322-430
+.github/workflows/pages.yml
+  s_07099039113fe1::t_3c20eaf999e022 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4de900ded2cad7b7c44cfbfd5673c7c72123b301",
+  "prompts": {},
+  "sessions": {
+    "s_07099039113fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce21596d-b9fc-478d-9167-7b276b86f42e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
