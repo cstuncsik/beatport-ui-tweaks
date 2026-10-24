@@ -2,6 +2,10 @@
 
 What changed in each version of Beatport UI Tweaks. Newest first, dates are release dates.
 
+## 2.7.0 (2026-10-24)
+
+- Added: update notices. After an update, a badge on the toolbar icon and a note on Beatport point to what's new, listed in the popup. When a newer version is out, the popup offers it: "Restart to update" for store installs, a download link for installs from a GitHub zip. "Update notices" in the popup switches the note on Beatport off.
+
 ## 2.6.3 (2026-10-23)
 
 - Fixed: works with the tracks table Beatport rolled out on October 22, 2026. It had broken every list feature: remember last played, the "Last played" button, highlight playing track, the A/Z keys and the Camelot column. Keys in the new table are abbreviated ("F Maj"), the Camelot code reads them too.
