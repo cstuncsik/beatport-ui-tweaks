@@ -1,0 +1,47 @@
+src/components/App.tsx
+  s_07099039113fe1::t_d8ff1e11a8a6d2 6,17
+src/features/update-notices.ts
+  s_07099039113fe1::t_3b3ce915651fa8 1-59
+README.md
+  s_07099039113fe1::t_1b9b2cb2d059e1 12,30
+src/manifest.json
+  s_07099039113fe1::t_46387a36b3ca2d 18
+src/assets/styles/content.scss
+  s_07099039113fe1::t_a6b043f2df7fd5 148-215
+e2e/extension.spec.ts
+  s_07099039113fe1::t_fc83b5fb920b80 3,447-543
+src/assets/scripts/utils/updates.ts
+  s_07099039113fe1::t_666dccbfd7590d 1-70
+src/assets/scripts/background.ts
+  s_07099039113fe1::t_1fb5f7bd7fad83 3-13,21-23,31,34-109
+  s_07099039113fe1::t_05127393579ca5 24-30
+src/features/content.ts
+  s_07099039113fe1::t_a6b043f2df7fd5 11-18
+  s_07099039113fe1::t_2dbc5b555b2063 7
+src/components/UpdateNotice.scss
+  s_07099039113fe1::t_d563cc4fb37409 1-91
+src/features/index.ts
+  s_07099039113fe1::t_e341c4e05e35e4 51-56
+  s_07099039113fe1::t_2f94ce610e209b 11-12
+docs/plans/update-notices.md
+  s_07099039113fe1::t_1b9b2cb2d059e1 3-8,146-147
+  s_07099039113fe1::t_b79f8645fad5f8 112-113,116,134-135
+src/components/UpdateNotice.tsx
+  s_07099039113fe1::t_03e754fca6fd3c 1-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "135ffa73ca031602c2d691c8828c853a277ca3c7",
+  "prompts": {},
+  "sessions": {
+    "s_07099039113fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce21596d-b9fc-478d-9167-7b276b86f42e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
