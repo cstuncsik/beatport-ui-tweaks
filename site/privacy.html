@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy policy: Beatport UI Tweaks</title>
+  <meta name="description" content="What the Beatport UI Tweaks browser extension keeps, reads and sends: everything stays in your browser, no server, no analytics, no ads.">
+  <link rel="canonical" href="https://cstuncsik.github.io/beatport-ui-tweaks/privacy.html">
+  <link rel="icon" href="icon.png">
+  <meta name="theme-color" content="#141414">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="icon.png" alt="" width="28" height="28">Beatport UI Tweaks</a>
+      <nav>
+        <a href="https://github.com/cstuncsik/beatport-ui-tweaks/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/cstuncsik/beatport-ui-tweaks">GitHub</a>
+        <a href="https://chromewebstore.google.com/detail/beatport-ui-tweaks/cpbhbclfehplhjdfikckomhcdoppkbge">Chrome Web Store</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap policy">
+    <h1>Privacy policy</h1>
+    <p class="updated">Last updated: October 24, 2026</p>
+    <p>Beatport UI Tweaks is a browser extension that adds small tweaks to beatport.com. It has no server of its own, no analytics and no ads. Nothing it handles is sent to the developer, and nothing is sold or shared.</p>
+
+    <h2>What it keeps, and where</h2>
+    <ul>
+      <li>Your feature switches, and the last played track of each Beatport list: the track's ID under the list's genre or artist and type, for example "drum-bass, tracks". They are kept in the extension's storage in Chrome (chrome.storage.sync). If you use Chrome sync, Chrome syncs them between your devices through your Google account.</li>
+      <li>The playlists you added tracks to, latest first, so they lead the "add to playlist" dialog: their IDs and the playlist details Beatport sent for them, such as the name and the track count. They are kept in beatport.com's local storage in your browser.</li>
+      <li>For the update notices: the last version whose notes you saw and, while one is out, the number of a newer version. They are kept in the extension's storage on this device (chrome.storage.local).</li>
+    </ul>
+
+    <h2>What it reads on beatport.com</h2>
+    <p>To do its job the extension reads parts of the Beatport pages you open: the track lists (titles, track IDs, keys), the player and the "add to playlist" dialog with your playlist names. It notices your clicks on play buttons and the A and Z keys, and it watches Beatport's own playlist requests in the page to learn which playlist you added tracks to. All of this stays in your browser.</p>
+
+    <h2>Requests it makes</h2>
+    <ul>
+      <li>Beatport: the "Last played" button asks Beatport's catalog API (api.beatport.com) where the remembered track is now. It uses the access token the Beatport page itself uses: your session token, read from Beatport's own session endpoint, when you are logged in, otherwise the anonymous token Beatport puts in the page. The token is used only for these requests to Beatport and is not stored.</li>
+      <li>GitHub: copies installed from a GitHub release zip, which the Chrome Web Store doesn't update, ask GitHub's API (api.github.com) once a day for the version number of the latest release. The request carries no data about you; like any web request, it shows your IP address to GitHub. Copies from the Chrome Web Store don't make this request.</li>
+    </ul>
+
+    <h2>What it doesn't do</h2>
+    <p>The extension doesn't sell or transfer your data, doesn't use it for anything but the features above, and doesn't track you, show ads or build profiles.</p>
+
+    <h2>Removing the data</h2>
+    <p>Uninstalling the extension removes its storage. The playlist history stays in beatport.com's local storage until you clear the site's data in your browser.</p>
+
+    <h2>Changes and contact</h2>
+    <p>Changes to this policy are published on this page. Questions: <a href="https://github.com/cstuncsik/beatport-ui-tweaks/issues">open an issue on GitHub</a>.</p>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>An independent project, not affiliated with Beatport. MIT license.</span>
+      <nav>
+        <a href="https://chromewebstore.google.com/detail/beatport-ui-tweaks/cpbhbclfehplhjdfikckomhcdoppkbge">Chrome Web Store</a>
+        <a href="https://github.com/cstuncsik/beatport-ui-tweaks">GitHub</a>
+        <a href="https://github.com/cstuncsik/beatport-ui-tweaks/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
