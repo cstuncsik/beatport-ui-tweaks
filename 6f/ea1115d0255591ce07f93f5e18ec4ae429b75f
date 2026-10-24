@@ -1,0 +1,23 @@
+site/style.css
+  s_07099039113fe1::t_743d7ee1a6066a 1-328
+site/privacy.html
+  s_07099039113fe1::t_78c711c9b8fef4 1-68
+site/index.html
+  s_07099039113fe1::t_743d7ee1a6066a 19,122,134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6fea1115d0255591ce07f93f5e18ec4ae429b75f",
+  "prompts": {},
+  "sessions": {
+    "s_07099039113fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce21596d-b9fc-478d-9167-7b276b86f42e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
