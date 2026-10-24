@@ -1,0 +1,19 @@
+docs/plans/update-notices.md
+  s_07099039113fe1::t_85bfe7ff3029a4 31-32,87-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0fddfed86d991c70ab959f8bb320b8b41dc25e92",
+  "prompts": {},
+  "sessions": {
+    "s_07099039113fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce21596d-b9fc-478d-9167-7b276b86f42e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
