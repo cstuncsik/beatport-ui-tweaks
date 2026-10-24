@@ -1,5 +1,6 @@
 import { test, expect, featureIds } from './fixtures'
 import type { Page, Worker } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 
 const siteUrl = 'https://www.beatport.com/genre/techno/6/top-100'
 
@@ -442,4 +443,101 @@ test('shows wheel-colored Camelot codes next to every key, toggle hides them', a
   await toggle(true)
   await expect(keyCell(0)).toHaveAttribute('data-bp-camelot', '7A')
   expect(await chip(keyCell(0))).toEqual(['"7A"', '-15'])
+})
+
+// Update notices: the background keeps the state in storage.local, the badge, the popup and the toast
+// follow it. Tests write the state the way the handlers would: an update can't be simulated here, a
+// command-line loaded extension does not come back from chrome.runtime.reload().
+const updateKey = 'beatport-ui-update'
+const updateState = (worker: Worker) =>
+  worker.evaluate(key => chrome.storage.local.get(key).then(items => items[key]), updateKey)
+const setUpdateState = async (worker: Worker, state: unknown) => {
+  // the install handler writes the first state, wait for it so it cannot overwrite this one
+  await expect.poll(() => updateState(worker)).toBeTruthy()
+  await worker.evaluate(([key, state]) => chrome.storage.local.set({ [key]: state }), [updateKey, state] as const)
+}
+const badge = (worker: Worker) => worker.evaluate(() => chrome.action.getBadgeText({}))
+const changelogVersions = [...readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8').matchAll(/^## (\S+)/gm)].map(([, version]) => version)
+
+test('after an update: badge, toast on Beatport and the notes in the popup', async ({ context, page, worker, popupUrl }) => {
+  const installed = await worker.evaluate(() => chrome.runtime.getManifest().version)
+  await expect.poll(() => updateState(worker), 'a fresh install has nothing to tell').toEqual({ seen: installed })
+  expect(await badge(worker)).toBe('')
+
+  // updated from two versions back without a look at the popup
+  const index = changelogVersions.indexOf(installed)
+  const [current, previous, older] = changelogVersions.slice(index, index + 3)
+  await setUpdateState(worker, { seen: older })
+  await expect.poll(() => badge(worker)).toBe('NEW')
+
+  await visitTrackList(page)
+  const toast = page.locator('.bp-ui-tweak-update-toast')
+  await expect(toast).toBeVisible()
+  await expect(toast).toContainText(`Beatport UI Tweaks updated to ${installed}`)
+  await toggleFeature(worker, 'bp-ui-tweak-update-notices', false)
+  await expect(toast, 'off: hidden').toBeHidden()
+  await toggleFeature(worker, 'bp-ui-tweak-update-notices', true)
+  await expect(toast).toBeVisible()
+
+  // "What's new" opens the popup, which marks the notes seen (or, without a window to open it in, the
+  // changelog on GitHub does)
+  await context.route('https://github.com/**', route => route.fulfill({ body: 'changelog' }))
+  await toast.getByRole('button', { name: "What's new" }).click()
+  await expect(toast, 'seen: the toast goes').toHaveCount(0)
+  await expect.poll(() => badge(worker), 'and the badge').toBe('')
+
+  await setUpdateState(worker, { seen: older })
+  await expect(toast, 'back with a new unseen state').toBeVisible()
+  const popup = await context.newPage()
+  await popup.goto(popupUrl)
+  const entries = popup.locator('.update-notice__entry')
+  await expect(entries, 'the two versions since the one seen').toHaveCount(2)
+  expect((await entries.locator('h2').allTextContents()).map(heading => heading.split(' ')[0])).toEqual([current, previous])
+  for (const entry of await entries.all()) {
+    expect(await entry.locator('li').count(), 'with their changelog lines').toBeGreaterThan(0)
+  }
+  await expect(popup.locator('.update-notice__link')).toHaveAttribute('href', /CHANGELOG\.md$/)
+  await expect.poll(() => badge(worker), 'opening the popup counts as seen').toBe('')
+  await expect(toast, 'in the open Beatport tab too').toHaveCount(0)
+  expect(await updateState(worker)).toEqual({ seen: installed })
+
+  await popup.reload()
+  await expect(popup.locator('.options')).toBeVisible()
+  await expect(popup.locator('.update-notice'), 'seen notes leave the popup').toHaveCount(0)
+})
+
+test('a newer version: GitHub check for zip installs, store restart, closing the toast', async ({ context, page, worker, popupUrl }) => {
+  // tests load the build unpacked, so the daily GitHub check is scheduled; fire it now
+  await context.route('https://api.github.com/repos/cstuncsik/beatport-ui-tweaks/releases/latest', route =>
+    route.fulfill({ json: { tag_name: 'v99.0.0' }, headers: { 'access-control-allow-origin': '*' } })
+  )
+  await expect.poll(() => worker.evaluate(() => chrome.alarms.get('github-release').then(alarm => alarm?.periodInMinutes))).toBe(1440)
+  await worker.evaluate(() => chrome.alarms.create('github-release', { when: Date.now() }))
+  await expect.poll(() => updateState(worker)).toMatchObject({ available: { version: '99.0.0', source: 'github' } })
+  await expect.poll(() => badge(worker)).toBe('↑')
+
+  await visitTrackList(page)
+  const second = await context.newPage()
+  await visitTrackList(second)
+  const toast = page.locator('.bp-ui-tweak-update-toast')
+  await expect(toast).toContainText('Beatport UI Tweaks 99.0.0 is available')
+  await expect(toast.getByRole('button', { name: 'Details' })).toBeVisible()
+  await expect(second.locator('.bp-ui-tweak-update-toast')).toBeVisible()
+  await toast.getByRole('button', { name: 'Close' }).click()
+  await expect(toast).toHaveCount(0)
+  await expect(second.locator('.bp-ui-tweak-update-toast'), 'closed in every tab').toHaveCount(0)
+  await expect.poll(() => badge(worker)).toBe('')
+
+  // seen, but not installed yet: the popup keeps offering it
+  const popup = await context.newPage()
+  await popup.goto(popupUrl)
+  await expect(popup.locator('.update-notice__available')).toContainText('Version 99.0.0 is available')
+  await expect(popup.getByRole('link', { name: 'Download' })).toHaveAttribute('href', 'https://github.com/cstuncsik/beatport-ui-tweaks/releases/tag/v99.0.0')
+
+  // a store install hears about it from Chrome instead (onUpdateAvailable)
+  await setUpdateState(worker, { seen: '1.0.0', available: { version: '99.0.1', source: 'store' } })
+  await popup.reload()
+  await expect(popup.getByRole('button', { name: 'Restart to update' })).toBeVisible()
+  await expect(popup.locator('.update-notice__hint')).toHaveText('Reload open Beatport tabs afterwards.')
+  await expect(popup.getByRole('link', { name: 'Download' })).toHaveCount(0)
 })

@@ -3,6 +3,7 @@ import './App.scss'
 import { Options } from './Options'
 import { useFeatureContext } from '../store'
 import { Loading } from './Loading'
+import { UpdateNotice } from './UpdateNotice'
 
 export const App = () => {
   const { state, toggleFeature } = useFeatureContext()
@@ -13,6 +14,7 @@ export const App = () => {
         <span className="version">v{chrome.runtime.getManifest().version}</span>
       </header>
       <main>
+        <UpdateNotice />
         {state.loading && <Loading />}
         {!state.loading && <Options features={state.features} toggleFeature={toggleFeature} />}
       </main>

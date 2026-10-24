@@ -8,7 +8,8 @@ export const ids = {
   keyboardPlayback: 'bp-ui-tweak-next-prev-play-keyboard',
   camelotKey: 'bp-ui-tweak-camelot-key',
   mruPlaylists: 'bp-ui-tweak-mru-playlists',
-  playlistFilter: 'bp-ui-tweak-playlist-filter'
+  playlistFilter: 'bp-ui-tweak-playlist-filter',
+  updateNotices: 'bp-ui-tweak-update-notices'
 } as const
 
 export const features: FeatureMeta[] = [
@@ -46,6 +47,12 @@ export const features: FeatureMeta[] = [
     id: ids.playlistFilter,
     label: 'Playlist filter box',
     description: 'A search box in the add-to-playlist dialog, narrows the list as you type',
+    enabled: true
+  },
+  {
+    id: ids.updateNotices,
+    label: 'Update notices',
+    description: 'A note on Beatport after the extension updated or when a new version is out',
     enabled: true
   }
 ]
