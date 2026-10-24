@@ -35,7 +35,8 @@ try {
 
   const page = context.pages()[0] ?? (await context.newPage())
   await page.goto(url, { waitUntil: 'domcontentloaded' })
-  const rows = page.locator('.row').filter({ has: page.locator('button[data-testid="play-button"]') })
+  // track rows of the October 2026 table; matched by the title link, the play button flips to "Pause"
+  const rows = page.locator('.row').filter({ has: page.locator('a[class*="TitleLink"]') })
   await rows.first().waitFor({ timeout: 45_000 })
   // the consent banner renders late and would cover the bottom of the screenshot
   const consent = page.locator('button:has-text("I Accept"), #onetrust-accept-btn-handler').first()
@@ -43,7 +44,7 @@ try {
     await consent.click()
     await consent.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
   }
-  await rows.nth(2).locator('button[data-testid="play-button"]').first().click()
+  await rows.nth(2).locator('button[aria-label="Play"]').first().click()
   await rows.nth(2).locator(':scope.bp-ui-tweak-last-played__active').waitFor({ timeout: 15_000 })
   // Beatport slides a streaming promo into the player a few seconds into playback
   await page.addStyleTag({ content: '#bp-player [class*="banner-container"] { display: none !important }' })
