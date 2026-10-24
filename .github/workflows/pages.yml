@@ -1,0 +1,41 @@
+name: Pages
+
+# Publishes site/ to https://cstuncsik.github.io/beatport-ui-tweaks/ with the icon and the store
+# screenshots copied in, so the page always shows the images of the store listing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'store-assets/*.jpg'
+      - 'src/assets/images/icon.png'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Assemble the site
+        run: |
+          mkdir _site
+          cp site/* store-assets/*.jpg src/assets/images/icon.png _site/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5
