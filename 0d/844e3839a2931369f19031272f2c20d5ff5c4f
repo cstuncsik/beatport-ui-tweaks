@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_07099039113fe1::t_7cc72f1f1ea59d 5-8
+package.json
+  s_07099039113fe1::t_7cc72f1f1ea59d 3
+src/manifest.json
+  s_07099039113fe1::t_7cc72f1f1ea59d 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0d844e3839a2931369f19031272f2c20d5ff5c4f",
+  "prompts": {},
+  "sessions": {
+    "s_07099039113fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce21596d-b9fc-478d-9167-7b276b86f42e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Csaba Tuncsik <csaba.tuncsik@gmail.com>"
+    }
+  }
+}
