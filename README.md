@@ -9,6 +9,7 @@ A web extension that adds some useful feature to [beatport.com](https://www.beat
 - Alt+Shift+B opens the popup (change it under chrome://extensions/shortcuts)
 - Playlists you added tracks to come first in the add-to-playlist dialog, latest first
 - A filter box in the add-to-playlist dialog, narrows the list as you type
+- After an update, a badge on the toolbar icon and a note on Beatport point to what's new in the popup; when a newer version is out, the popup offers it (restart for store installs, download for GitHub zips)
 
 ## What's new
 
@@ -26,7 +27,7 @@ See the [changelog](CHANGELOG.md).
 
 ## Releasing
 
-1. The PR that bumps `version` in `package.json` and `src/manifest.json` adds the entry at the top of `CHANGELOG.md` (CI fails without it).
+1. The PR that bumps `version` in `package.json` and `src/manifest.json` adds the entry at the top of `CHANGELOG.md` (CI fails without it). The popup shows these lines to users after the update, write them for users.
 2. After the merge, tag main: `git tag vX.Y.Z && git push origin vX.Y.Z`. The release workflow builds the zip and publishes the GitHub release with the changelog entry as notes.
 3. Upload the zip from the release page to the Chrome Web Store dashboard.
 

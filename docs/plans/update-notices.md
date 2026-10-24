@@ -1,6 +1,11 @@
 # Update notices
 
-Status: plan, 2026-10-24. Branch `feat-update-notification` from main at 2.6.3, ships as 2.7.0.
+Status: built 2026-10-24 on branch `feat-update-notification` from main at 2.6.3, ships as 2.7.0. Step 6
+was dropped: a command-line loaded extension does not come back from `chrome.runtime.reload()`
+(`ERR_BLOCKED_BY_CLIENT` afterwards, even without a version change), so an update can't be simulated
+in the e2e harness; the tests write the state the handlers would. Steps 5 and the toast button work as
+planned: `context.route` catches the worker's GitHub fetch, an alarm with `when: Date.now()` fires
+within 0.1 s in an unpacked build, and `openPopup()` opens the popup in headless Chromium.
 
 ## Story
 
@@ -104,10 +109,11 @@ Toast: registry entry `bp-ui-tweak-update-notices`, label "Update notices", desc
 Beatport when the extension updated or an update is ready", and `src/features/update-notices.ts`. Its
 `start()` reads the state and, when there is a notice, appends a fixed box to the body: the extension
 icon, "Beatport UI Tweaks updated to 2.7.0" or "Beatport UI Tweaks 2.7.1 is available", a "What's new"
-or "Details" button (sends `open-popup`, marks seen) and a × (marks seen). The box removes itself on
+or "Details" button (sends `open-popup`; the popup marks seen once it has read the notes) and a ×
+(marks seen). The box removes itself on
 `storage.onChanged` once seen, and CSS hides it unless the body has the feature class, like the other
 features. Styles in `content.scss`, Beatport's palette, bottom right above the player; the placement
-is checked in the live-check trace.
+is checked by eye on the real site (the live check uploads traces only when it fails).
 
 ## Steps
 
@@ -125,8 +131,8 @@ is checked in the live-check trace.
 6. Update path end to end, if it holds up: load a copy of `dist` with a lower manifest version, write
    the real version back, call `chrome.runtime.reload()` from the worker, expect `NEW` and the entries.
    Dropped if flaky, step 2 covers the state the handler writes.
-7. Version 2.7.0, CHANGELOG entry, README feature line, live check dispatched (toast placement in the
-   trace).
+7. Version 2.7.0, CHANGELOG entry, README feature line, live check dispatched, toast placement checked
+   by eye on the real site.
 
 ## Out of scope
 
@@ -137,11 +143,8 @@ is checked in the live-check trace.
 
 ## Risks
 
-- Playwright documents `context.route` for page service workers, not extension ones, and unpacked
-  alarms with `when: Date.now()` should fire at once. Both are checked in step 5. Fallback: the test
-  writes the state the check would write, and the fetch stays a manual check.
-- `openPopup()` runs from a message handler, without a user gesture. It should work since Chrome 127,
-  and the changelog tab is the fallback.
+- `openPopup()` runs from a message handler, without a user gesture. Works in headless Chromium; in a
+  window that isn't focused it rejects and the changelog tab stands in.
 - The store "available" notice will be rare: the service worker idles within seconds and Chrome
   installs the update instead.
 - The toast sits on Beatport's page, so its position can clash with their player. One class to adjust.
