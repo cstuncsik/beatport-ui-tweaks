@@ -28,8 +28,8 @@ Wanted: after an update, a short "what's new"; when a newer version is out, a no
 - `management.getSelf()` needs no permission. `installType` is `development` for Load unpacked,
   `normal` for the store.
 - The GitHub REST API allows CORS from any origin, so no host permission. Unauthenticated limit: 60
-  requests per hour per IP. The store lags GitHub (2.6.0 vs 2.6.3 today), so store users are never told
-  about GitHub releases.
+  requests per hour per IP. The store lags GitHub (a tag is live at once, the store version after the
+  upload and its review), so store users are never told about GitHub releases.
 - `action.openPopup()` is available to every extension since Chrome 127.
 - A badge only shows on a pinned icon, and Chrome does not pin new installs.
 - Parcel: `import changelogUrl from 'url:../CHANGELOG.md'` copies the file into `dist` under a hashed
@@ -84,8 +84,8 @@ after, upTo)` returning `{ version, date, items }[]`.
 
 Background (`src/assets/scripts/background.ts`):
 - `onInstalled`: `install` sets `seen` to the installed version. `update` sets `seen` to
-  `previousVersion` when there is no state yet (first rollout: a store user on 2.6.0 sees 2.6.1 to
-  2.7.0), keeps an existing `seen` (two updates without a visit show both), and drops `available` when
+  `previousVersion` when there is no state yet (first rollout: a store user on 2.6.3 sees the 2.7.0
+  entry, one who skipped versions sees every entry since), keeps an existing `seen` (two updates without a visit show both), and drops `available` when
   it is not newer than the installed version. `chrome_update` and same-version reloads change nothing.
 - `onUpdateAvailable({ version })`: `available = { version, source: 'store' }`.
 - Zip installs only: alarm `github-release` with `delayInMinutes: 1, periodInMinutes: 1440`, created on
