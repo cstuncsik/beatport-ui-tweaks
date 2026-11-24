@@ -2,7 +2,7 @@
 // built from. What was measured is in docs/plans/go-to-last-played.md.
 
 const apiBase = 'https://api.beatport.com/v4'
-const defaultOrder = '-release_date,release_id'
+const defaultOrder = '-release_date'
 const countCap = 10000
 const dayPageSize = 150
 // how far each side of the estimate the scan looks before giving up, in list pages
@@ -50,8 +50,15 @@ export const listParams = (): ListParams | null => {
   if (params.publish_date) {
     return null
   }
+  // the site's query says "no preorders" as price_category, which the catalog API ignores: without
+  // this the API list carries the preorders on top and its pages run a week ahead of the site's
+  if (params.price_category === '!preorder') {
+    params.preorder = false
+    delete params.price_category
+  }
   delete params.page
   delete params.per_page
+  delete params.page_size
   delete params.publish_date
   params.include_facets = false
   return params
