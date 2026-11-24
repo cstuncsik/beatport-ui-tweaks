@@ -134,7 +134,8 @@ const goToLastPlayed = async () => {
     return
   }
   const url = new URL(location.href)
-  const perPage = Number(url.searchParams.get('per_page')) || document.querySelectorAll(playedItemBaseSelector).length || 25
+  // the rows on the page, not the URL: Beatport renders 100 rows for per_page=150
+  const perPage = document.querySelectorAll(playedItemBaseSelector).length || Number(url.searchParams.get('per_page')) || 25
   setLastPlayedButtons('Searching…', 'busy')
   try {
     const token = await accessToken()

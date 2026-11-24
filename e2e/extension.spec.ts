@@ -33,7 +33,7 @@ const nextData = JSON.stringify({
     pageProps: {
       anonSession: { access_token: 'anon-token' },
       dehydratedState: {
-        queries: [{ queryKey: ['tracks', { page: 1, per_page: 150, order_by: '-release_date,release_id', preorder: false, genre_id: '6', include_facets: true, publish_date: '' }] }]
+        queries: [{ queryKey: ['tracks', { page: 1, page_size: 150, order_by: '-release_date', price_category: '!preorder', genre_id: '6', subgenre_id: '', key_name: '' }] }]
       }
     }
   }
@@ -193,6 +193,10 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
     const detail = url.pathname.match(/\/v4\/catalog\/tracks\/(\d+)\/$/)
     if (detail) {
       return route.fulfill({ json: catalog.find(track => track.id === Number(detail[1])), headers: cors })
+    }
+    // the catalog API ignores price_category, so the search has to send preorder=false itself
+    if (url.searchParams.get('preorder') !== 'false' || url.searchParams.has('price_category')) {
+      return route.fulfill({ status: 400, headers: cors })
     }
     const pageNumber = Number(url.searchParams.get('page') ?? 1)
     const perPage = Number(url.searchParams.get('per_page') ?? 25)
