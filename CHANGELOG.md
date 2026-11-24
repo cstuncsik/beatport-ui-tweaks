@@ -2,6 +2,10 @@
 
 What changed in each version of Beatport UI Tweaks. Newest first, dates are release dates.
 
+## 2.7.1 (2026-11-24)
+
+- Fixed: the "Last played" button lands on the page your track is on again. Beatport changed how its lists leave out preorders, the search kept counting them and went to a page about a week of releases too new. It also follows the number of rows Beatport actually shows, which can differ from the per-page setting in the address.
+
 ## 2.7.0 (2026-10-24)
 
 - Added: update notices. After an update, a badge on the toolbar icon and a note on Beatport point to what's new, listed in the popup. When a newer version is out, the popup offers it: "Restart to update" for store installs, a download link for installs from a GitHub zip. "Update notices" in the popup switches the note on Beatport off.
