@@ -4,7 +4,7 @@ import { playedItemBaseSelector, playButtonSelector, rowActiveClass, rowClass } 
 import { observeWhileEnabled, waitUntil, waitUntilElementIsVisible } from '../assets/scripts/utils/dom'
 import { getGenreOrArtistAndTypeFromUrl } from '../assets/scripts/utils/url'
 import { getLastPlayedReleases, lastPlayedStorageKey } from '../assets/scripts/utils/chrome'
-import { accessToken, findTrackPage, listParams } from '../assets/scripts/utils/beatport-api'
+import { accessToken, findTrackPage, listMatchesPage, listParams } from '../assets/scripts/utils/beatport-api'
 
 // Remembers the track played last per list, scrolls to it and marks it when the list is opened again,
 // and puts a "Last played" button next to Beatport's pager that finds the page the track moved to.
@@ -134,11 +134,19 @@ const goToLastPlayed = async () => {
     return
   }
   const url = new URL(location.href)
+  const shownIds = [...document.querySelectorAll(`.${rowClass}`)]
+    .map(row => row.querySelector<HTMLAnchorElement>(playedItemBaseSelector)?.href.split('/').pop())
+    .filter((trackId): trackId is string => !!trackId)
   // the rows on the page, not the URL: Beatport renders 100 rows for per_page=150
-  const perPage = document.querySelectorAll(playedItemBaseSelector).length || Number(url.searchParams.get('per_page')) || 25
+  const perPage = shownIds.length || Number(url.searchParams.get('per_page')) || 25
   setLastPlayedButtons('Searching…', 'busy')
   try {
     const token = await accessToken()
+    if (token && !(await listMatchesPage(params, Number(url.searchParams.get('page')) || 1, perPage, shownIds, token))) {
+      console.warn('Beatport UI Tweaks: the catalog API does not return the rows this page shows, Beatport changed its list query', params)
+      flashLastPlayedButtons('Search out of date')
+      return
+    }
     const found = token ? await findTrackPage(trackId, params, perPage, token) : { reason: 'not-found' as const }
     if ('page' in found) {
       url.searchParams.set('page', String(found.page))

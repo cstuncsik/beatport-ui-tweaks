@@ -5,6 +5,7 @@ What changed in each version of Beatport UI Tweaks. Newest first, dates are rele
 ## 2.7.1 (2026-11-24)
 
 - Fixed: the "Last played" button lands on the page your track is on again. Beatport changed how its lists leave out preorders, the search kept counting them and went to a page about a week of releases too new. It also follows the number of rows Beatport actually shows, which can differ from the per-page setting in the address.
+- Changed: before it searches, the "Last played" button checks that Beatport's catalog returns the rows the page shows. If Beatport changes its lists again, the button says "Search out of date" instead of taking you to the wrong page.
 
 ## 2.7.0 (2026-10-24)
 

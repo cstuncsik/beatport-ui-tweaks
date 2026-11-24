@@ -107,3 +107,4 @@ archives
 
 # Playwright
 test-results
+playwright-results.json

@@ -78,6 +78,19 @@ const api = async <T>(path: string, params: ListParams, token: string): Promise<
   return response.json()
 }
 
+// Whether the API, asked with the list's parameters, returns the rows the page shows. Beatport changes
+// its list query now and then (in November 2026 it began leaving out preorders by a parameter the API
+// ignores), and from then on the search lands on wrong pages; this catches it before navigating.
+// ponytail: half the rows is the bar, tracks of one release day may order differently at the edges
+export const listMatchesPage = async (params: ListParams, page: number, perPage: number, shownIds: string[], token: string) => {
+  if (!shownIds.length) {
+    return true
+  }
+  const listing = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: perPage }, token)
+  const listed = new Set(listing.results.map(track => String(track.id)))
+  return shownIds.filter(id => listed.has(id)).length * 2 >= shownIds.length
+}
+
 const isoDate = (date: Date) => date.toISOString().slice(0, 10)
 const dayAfter = (date: string) => {
   const next = new Date(`${date}T00:00:00Z`)
