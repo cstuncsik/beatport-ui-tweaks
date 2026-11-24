@@ -220,6 +220,15 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
   await worker.evaluate(id => chrome.storage.sync.set({ 'beatport-last-played': { techno: { tracks: id } } }), String(target.id))
   await page.reload()
   await expect(buttons.first()).toHaveAttribute('data-state', '')
+
+  // rows the API does not list for this page: Beatport changed its list query, the search stays put
+  await renderRows(page, Array.from({ length: 150 }, (_, i) => String(5000 + i)))
+  await buttons.last().click()
+  await expect(buttons.first(), 'self-check caught the mismatch').toHaveText('Search out of date')
+  await expect(buttons.first()).toHaveText('Last played', { timeout: 5000 })
+  expect(page.url(), 'no navigation').toMatch(/page=1&per_page=150$/)
+
+  await renderRows(page, listOrder.slice(0, 150).map(track => String(track.id)))
   await buttons.last().click()
   // the estimate is page 6, the track is on page 3: the search scans past the old two-page window to reach it
   await page.waitForURL(/\/genre\/techno\/6\/tracks\?page=3&per_page=150$/)

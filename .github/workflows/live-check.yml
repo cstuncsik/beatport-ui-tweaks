@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read
 
 jobs:
   live:
@@ -25,6 +26,30 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Live check, headed under Xvfb (Cloudflare blocks headless)
         run: xvfb-run --auto-servernum pnpm test:live
+      # a Cloudflare challenge skips the test and the run still ends green: a run counts only when the
+      # test passed, and the issue opens once no run counted for three days
+      - name: Did the check verify the extension
+        id: verified
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if jq -e '.stats.expected > 0 and .stats.skipped == 0' playwright-results.json > /dev/null; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=live-verified&per_page=100" --jq '[.artifacts[] | select(.expired | not) | .created_at] | max // empty')
+          if [ -z "$last" ]; then
+            echo "blind_since=no verified run on record (kept 30 days)" >> "$GITHUB_OUTPUT"
+          elif [ $(( $(date +%s) - $(date -d "$last" +%s) )) -ge $(( 3 * 86400 )) ]; then
+            echo "blind_since=the last verified run was on $last" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v7
+        if: steps.verified.outputs.verified == 'true'
+        with:
+          name: live-verified
+          path: playwright-results.json
+          retention-days: 30
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
@@ -32,13 +57,18 @@ jobs:
           path: test-results/
           retention-days: 14
       - name: Open or update the tracking issue
-        if: failure()
+        if: failure() || steps.verified.outputs.blind_since
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BLIND_SINCE: ${{ steps.verified.outputs.blind_since }}
         run: |
           gh label create live-check --description "Daily live check against beatport.com" --color d73a4a --force
-          body="The daily live check against beatport.com failed, Beatport's markup may have changed. Run: $RUN_URL"
+          if [ -n "$BLIND_SINCE" ]; then
+            body="The daily live check is blind: Cloudflare keeps serving its challenge page, so nothing was verified for three days and more ($BLIND_SINCE). Run: $RUN_URL"
+          else
+            body="The daily live check against beatport.com failed, Beatport's markup may have changed. Run: $RUN_URL"
+          fi
           number=$(gh issue list --label live-check --state open --json number --jq '.[0].number')
           if [ -n "$number" ]; then
             gh issue comment "$number" --body "Still failing. $body"

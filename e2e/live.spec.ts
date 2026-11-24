@@ -62,15 +62,14 @@ test('the extension still works on a live Beatport tracks list', async ({ page, 
   await expect(pills, '"Last played" pill in both pager rows').toHaveCount(2)
   await expect(pills.first(), 'pill active once something was played').toHaveAttribute('data-state', '')
 
-  // the search: from page 2 the pill has to bring us back to the played track on page 1
-  await page.goto(url.replace('?', '?page=2&'), { waitUntil: 'domcontentloaded' })
-  if (!(await rows.first().waitFor({ timeout: 45_000 }).then(() => true, () => false))) {
-    console.log('::warning::Live check: Cloudflare challenged the second page load, the "Last played" search was not verified')
-    return
-  }
-  await pills.first().waitFor({ timeout: 15_000 })
+  // The search, from this first page load: a Cloudflare challenge on a second load skipped it for weeks.
+  // Hide the played row's link from the extension and the pill searches the catalog API. Its self-check
+  // compares the API's rows with the page's first, so a change in Beatport's list query fails here.
+  await trackRows.nth(2).locator('a[class*="TitleLink"]').first().evaluate(a => a.setAttribute('href', '/track/hidden/0'))
   await pills.first().click()
-  await page.waitForURL(/[?&]page=1&per_page=150/, { timeout: 60_000 })
+  await page.waitForURL(/[?&]page=1(&|$)/, { timeout: 60_000 }).catch(async () => {
+    throw new Error(`The "Last played" search did not navigate, the pill says "${await pills.first().textContent()}"`)
+  })
   if (!(await rows.first().waitFor({ timeout: 45_000 }).then(() => true, () => false))) {
     console.log('::warning::Live check: Cloudflare challenged the page the "Last played" search landed on')
     return
