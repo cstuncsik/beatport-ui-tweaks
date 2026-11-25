@@ -170,42 +170,37 @@ test('scrolls to the remembered track again when you come back to the list', asy
 })
 
 test('"Last played" button jumps to the page the track moved to', async ({ page, worker }) => {
-  // Two orderings of the same 900 tracks: the list sorts by release date (listOrder, what a page
-  // shows), the search estimates the position by publish date (catalog, newest published first). The
-  // two drift apart, so the estimated page is not the real one. Track 801 is published 800th, which
-  // puts the estimate on page 6, but by release order it sits on page 3: the search has to scan there.
-  const catalog = Array.from({ length: 900 }, (_, i) => ({
-    id: i + 1,
-    publish_date: new Date(Date.UTC(2026, 9, 10) - i * 86_400_000).toISOString().slice(0, 10)
+  // 900 tracks, seven per release day, ids scattered so that only the list's own order (newest day
+  // first, a day's tracks by id) puts them in place. The target is the first row of page 3 at 150 per
+  // page, its release day starts on page 2: the search has to break the tie by id.
+  const tracks = Array.from({ length: 900 }, (_, i) => ({
+    id: ((i * 7919) % 9001) + 1,
+    date: new Date(Date.UTC(2026, 9, 10) - Math.floor(i / 7) * 86_400_000).toISOString().slice(0, 10)
   }))
-  const target = catalog[800]
-  const listOrder = catalog.filter(track => track.id !== target.id)
-  listOrder.splice(320, 0, target)
+  const listOrder = tracks.toSorted((a, b) => (a.date === b.date ? a.id - b.id : b.date.localeCompare(a.date)))
+  const target = listOrder[300]
   const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization', 'access-control-allow-methods': 'GET, OPTIONS' }
   const tokens: (string | undefined)[] = []
-  await page.route('https://api.beatport.com/v4/**', route => {
+  await page.route('https://api.beatport.com/**', route => {
     const request = route.request()
     if (request.method() === 'OPTIONS') {
       return route.fulfill({ status: 204, headers: cors })
     }
     tokens.push(request.headers()['authorization'])
     const url = new URL(request.url())
-    const detail = url.pathname.match(/\/v4\/catalog\/tracks\/(\d+)\/$/)
+    const detail = url.pathname.match(/^\/v4\/catalog\/tracks\/(\d+)\/$/)
     if (detail) {
-      return route.fulfill({ json: catalog.find(track => track.id === Number(detail[1])), headers: cors })
+      const track = tracks.find(track => track.id === Number(detail[1]))
+      return route.fulfill({ json: { id: track?.id, new_release_date: track?.date }, headers: cors })
     }
-    // the catalog API ignores price_category, so the search has to send preorder=false itself
-    if (url.searchParams.get('preorder') !== 'false' || url.searchParams.has('price_category')) {
+    // the list comes from the site's endpoint with the site's query, nothing translated
+    if (url.pathname !== '/catalog/v1/tracks/' || url.searchParams.get('price_category') !== '!preorder' || url.searchParams.get('order_by') !== '-release_date') {
       return route.fulfill({ status: 400, headers: cors })
     }
-    const pageNumber = Number(url.searchParams.get('page') ?? 1)
-    const perPage = Number(url.searchParams.get('per_page') ?? 25)
-    // with a publish_date range the search counts the position; without it, a real list page by release order
-    const range = url.searchParams.get('publish_date')
-    const results = range
-      ? catalog.filter(track => track.publish_date >= range.split(':')[0] && track.publish_date <= range.split(':')[1])
-      : listOrder
-    return route.fulfill({ json: { count: results.length, results: results.slice((pageNumber - 1) * perPage, pageNumber * perPage) }, headers: cors })
+    const pageNumber = Number(url.searchParams.get('page'))
+    const pageSize = Number(url.searchParams.get('page_size'))
+    const items = listOrder.slice((pageNumber - 1) * pageSize, pageNumber * pageSize).map(track => ({ track_id: track.id, release: { release_date: `${track.date}T00:00:00` } }))
+    return route.fulfill({ json: { items, total_pages: Math.ceil(listOrder.length / pageSize), total_count: listOrder.length }, headers: cors })
   })
 
   await visitTrackList(page, 'https://www.beatport.com/genre/techno/6/tracks?page=1&per_page=150')
@@ -222,7 +217,7 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
   await expect(buttons.first()).toHaveAttribute('data-state', '')
 
   // rows the API does not list for this page: Beatport changed its list query, the search stays put
-  await renderRows(page, Array.from({ length: 150 }, (_, i) => String(5000 + i)))
+  await renderRows(page, Array.from({ length: 150 }, (_, i) => String(20000 + i)))
   await buttons.last().click()
   await expect(buttons.first(), 'self-check caught the mismatch').toHaveText('Search out of date')
   await expect(buttons.first()).toHaveText('Last played', { timeout: 5000 })
@@ -230,7 +225,6 @@ test('"Last played" button jumps to the page the track moved to', async ({ page,
 
   await renderRows(page, listOrder.slice(0, 150).map(track => String(track.id)))
   await buttons.last().click()
-  // the estimate is page 6, the track is on page 3: the search scans past the old two-page window to reach it
   await page.waitForURL(/\/genre\/techno\/6\/tracks\?page=3&per_page=150$/)
   expect(tokens[0], 'the anonymous token from the page').toBe('Bearer anon-token')
 
