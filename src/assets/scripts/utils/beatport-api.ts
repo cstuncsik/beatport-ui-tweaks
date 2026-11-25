@@ -1,17 +1,16 @@
-// Finds the page a track sits on in the current Beatport list, through the catalog API the list is
-// built from. What was measured is in docs/plans/go-to-last-played.md.
+// Finds the page a track sits on in the current Beatport list, through the endpoint the site builds
+// the list from (catalog/v1, since November 2026) with the site's own query, so its pages are the
+// site's pages. History of what was measured is in docs/plans/go-to-last-played.md.
 
-const apiBase = 'https://api.beatport.com/v4'
+const apiBase = 'https://api.beatport.com'
 const defaultOrder = '-release_date'
+// the list endpoint stops at 10000 rows, however long the list is
 const countCap = 10000
-const dayPageSize = 150
-// how far each side of the estimate the scan looks before giving up, in list pages
-const maxVerifyPages = 40
 
 export type ListParams = Record<string, string | number | boolean>
 export type Found = { page: number } | { reason: 'unreachable' | 'not-found' }
-type Track = { id: number; publish_date: string }
-type Listing = { count: number; results: Track[] }
+type ListItem = { track_id: number; release: { release_date: string } }
+type Listing = { items: ListItem[]; total_pages: number; total_count: number }
 
 const pageData = () => {
   try {
@@ -34,33 +33,22 @@ export const accessToken = async (): Promise<string | null> => {
   return pageData()?.props?.pageProps?.anonSession?.access_token ?? null
 }
 
-// The list's own query parameters, from the server-rendered page data when that is for this list,
-// else rebuilt from the URL. Null for a list the search cannot handle: not a tracks list, sorted in
-// another way than newest first, or filtered by release date, which the search uses itself.
+// The list's own query, from the server-rendered page data when that is for this list, else rebuilt
+// from the URL with the site's defaults. Null for a list the search cannot handle: not a tracks list,
+// or sorted in another way than newest first, which the binary search relies on.
 export const listParams = (): ListParams | null => {
   const [, kind, , id, type] = location.pathname.split('/')
   const order = new URL(location.href).searchParams.get('order_by') ?? defaultOrder
-  if (type !== 'tracks' || !['genre', 'artist', 'label'].includes(kind) || !order.startsWith('-release_date')) {
+  if (type !== 'tracks' || !['genre', 'artist', 'label'].includes(kind) || order !== defaultOrder) {
     return null
   }
   const rendered = pageData()
     ?.props?.pageProps?.dehydratedState?.queries?.find((query: { queryKey?: unknown[] }) => query.queryKey?.[0] === 'tracks')
     ?.queryKey?.[1]
-  const params: ListParams = rendered?.[`${kind}_id`] === id ? { ...rendered } : { [`${kind}_id`]: id, order_by: defaultOrder, preorder: false }
-  if (params.publish_date) {
-    return null
-  }
-  // the site's query says "no preorders" as price_category, which the catalog API ignores: without
-  // this the API list carries the preorders on top and its pages run a week ahead of the site's
-  if (params.price_category === '!preorder') {
-    params.preorder = false
-    delete params.price_category
-  }
+  const params: ListParams = rendered?.[`${kind}_id`] === id ? { ...rendered } : { [`${kind}_id`]: id, order_by: defaultOrder, price_category: '!preorder' }
   delete params.page
-  delete params.per_page
   delete params.page_size
-  delete params.publish_date
-  params.include_facets = false
+  delete params.per_page
   return params
 }
 
@@ -78,70 +66,56 @@ const api = async <T>(path: string, params: ListParams, token: string): Promise<
   return response.json()
 }
 
-// Whether the API, asked with the list's parameters, returns the rows the page shows. Beatport changes
-// its list query now and then (in November 2026 it began leaving out preorders by a parameter the API
-// ignores), and from then on the search lands on wrong pages; this catches it before navigating.
-// ponytail: half the rows is the bar, tracks of one release day may order differently at the edges
+const listPage = (params: ListParams, page: number, perPage: number, token: string) =>
+  api<Listing>('/catalog/v1/tracks/', { ...params, page, page_size: perPage }, token)
+
+// Whether the endpoint, asked with the list's query, returns the rows the page shows. Beatport changes
+// its list endpoint and query now and then, and from then on the search would land on wrong pages;
+// this catches it before navigating.
+// ponytail: 90% of the rows is the bar, tracks added since the page loaded shift a few rows
 export const listMatchesPage = async (params: ListParams, page: number, perPage: number, shownIds: string[], token: string) => {
   if (!shownIds.length) {
     return true
   }
-  const listing = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: perPage }, token)
-  const listed = new Set(listing.results.map(track => String(track.id)))
-  return shownIds.filter(id => listed.has(id)).length * 2 >= shownIds.length
+  const listed = new Set((await listPage(params, page, perPage, token)).items.map(item => String(item.track_id)))
+  return shownIds.filter(id => listed.has(id)).length >= shownIds.length * 0.9
 }
 
-const isoDate = (date: Date) => date.toISOString().slice(0, 10)
-const dayAfter = (date: string) => {
-  const next = new Date(`${date}T00:00:00Z`)
-  next.setUTCDate(next.getUTCDate() + 1)
-  return isoDate(next)
-}
-
+// The list sorts newest release day first and a day's tracks by id, so a binary search over its pages
+// finds the track's page in about log2(pages) calls.
 export const findTrackPage = async (id: string, params: ListParams, perPage: number, token: string): Promise<Found> => {
-  const { publish_date: date } = await api<Track>(`/catalog/tracks/${id}/`, {}, token)
-  // everything released after that day comes first in the list, then its day up to the track
-  const after = await api<Listing>('/catalog/tracks/', { ...params, page: 1, per_page: 1, publish_date: `${dayAfter(date)}:${dayAfter(isoDate(new Date()))}` }, token)
-  let position = after.count
-  for (let page = 1; page <= 10; page++) {
-    const day = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: dayPageSize, publish_date: `${date}:${date}` }, token)
-    const index = day.results.findIndex(track => String(track.id) === id)
-    if (index >= 0) {
-      position += (page - 1) * dayPageSize + index
-      break
-    }
-    if (page * dayPageSize >= day.count) {
-      break
-    }
+  const { new_release_date: date } = await api<{ new_release_date: string }>(`/v4/catalog/tracks/${id}/`, {}, token)
+  const target = Number(id)
+  const comesBefore = (item: ListItem) => {
+    const day = item.release.release_date.slice(0, 10)
+    return day === date ? target < item.track_id : date > day
   }
-  if (position >= countCap) {
-    console.warn('Beatport UI Tweaks: "Last played" track is past the 10000-row cap', { id, date, newer: after.count, position })
+  let page = 1
+  let listing = await listPage(params, page, perPage, token)
+  let low = 1
+  let high = listing.total_pages
+  while (listing.items.length) {
+    const { items } = listing
+    if (items.some(item => item.track_id === target)) {
+      return { page }
+    }
+    if (comesBefore(items[0])) {
+      high = page - 1
+    } else if (!comesBefore(items[items.length - 1])) {
+      low = page + 1
+    } else {
+      break // sorts inside this page but is not on it: gone from the list
+    }
+    if (low > high) {
+      break
+    }
+    page = Math.floor((low + high) / 2)
+    listing = await listPage(params, page, perPage, token)
+  }
+  if (low > listing.total_pages && listing.total_count >= countCap) {
+    console.warn('Beatport UI Tweaks: "Last played" track is past the 10000-row cap', { id, date })
     return { reason: 'unreachable' }
   }
-  // The position is an estimate: the list sorts by release date, the count is by publish date, and the
-  // two drift apart by pages this deep (seen 11 pages at position 5766). So the estimated page is a
-  // starting point, not the answer; scan outward from it one page at a time until the track turns up.
-  // ponytail: linear scan, up to maxVerifyPages fetches each side. If the drift ever outgrows that,
-  // count by release date instead of publish date (needs the catalog API to filter on release date).
-  const estimate = Math.max(1, Math.floor(position / perPage) + 1)
-  const onPage = (listing: Listing) => listing.results.some(track => String(track.id) === id)
-  const start = await api<Listing>('/catalog/tracks/', { ...params, page: estimate, per_page: perPage }, token)
-  if (onPage(start)) {
-    return { page: estimate }
-  }
-  const lastPage = Math.max(1, Math.ceil(Math.min(start.count, countCap) / perPage))
-  for (let step = 1; step <= maxVerifyPages; step++) {
-    const pages = [estimate - step, estimate + step].filter(page => page >= 1 && page <= lastPage)
-    if (!pages.length) {
-      break
-    }
-    for (const page of pages) {
-      const listing = await api<Listing>('/catalog/tracks/', { ...params, page, per_page: perPage }, token)
-      if (onPage(listing)) {
-        return { page }
-      }
-    }
-  }
-  console.warn('Beatport UI Tweaks: "Last played" search did not reach the track', { id, date, newer: after.count, position, estimate, lastPage, perPage })
+  console.warn('Beatport UI Tweaks: "Last played" search did not find the track', { id, date, page, perPage })
   return { reason: 'not-found' }
 }
